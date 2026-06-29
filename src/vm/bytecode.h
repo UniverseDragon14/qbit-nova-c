@@ -9,6 +9,7 @@ typedef enum {
     OP_QBIT,
     OP_HADAMARD,
     OP_MEASURE,
+    OP_ENTANGLE,
     OP_CHECK,
     OP_REPEAT,
     OP_BLOCK,
