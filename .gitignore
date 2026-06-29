@@ -10,3 +10,4 @@ test_parser
 .DS_Store
 qbyte-vm
 qnova-byte
+qnova-qbc
