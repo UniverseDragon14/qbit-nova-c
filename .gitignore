@@ -1,0 +1,10 @@
+# Build outputs
+qnova-ast
+test_lexer
+test_parser
+*.o
+*.out
+*.qbc
+
+# Temp files
+.DS_Store
