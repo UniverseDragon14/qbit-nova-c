@@ -148,6 +148,26 @@ static void vm_say(const char *value) {
     printf("%s\n", value);
 }
 
+static void cnot_qbits(const char *control_name, const char *target_name) {
+    VMQbit *control = find_qbit(control_name);
+    VMQbit *target = find_qbit(target_name);
+
+    if (!control || !target) {
+        printf("[QCORE ERROR] cannot CNOT missing qbit: %s %s\n", control_name, target_name);
+        return;
+    }
+
+    strcpy(control->entangled_with, target_name);
+    strcpy(target->entangled_with, control_name);
+
+    target->a = control->a;
+    target->b = control->b;
+    target->measured = 0;
+    target->result = 0;
+
+    printf("[QCORE] CNOT %s -> %s\n", control_name, target_name);
+}
+
 static void entangle_qbits(const char *left_name, const char *right_name) {
     VMQbit *left = find_qbit(left_name);
     VMQbit *right = find_qbit(right_name);
@@ -230,6 +250,10 @@ void run_bytecode(Instruction *code, int count) {
                 else printf("[VM ERROR] qbit not found: %s\n", ins.arg1);
                 break;
             }
+
+            case OP_CNOT:
+                cnot_qbits(ins.arg1, ins.arg2);
+                break;
 
             case OP_ENTANGLE:
                 entangle_qbits(ins.arg1, ins.arg2);

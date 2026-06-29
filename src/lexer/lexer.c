@@ -125,6 +125,7 @@ Token* tokenize(const char *src, int *count) {
             else if (!strcmp(buf,"hadamard")) add_token(TOKEN_HADAMARD,buf,line);
             else if (!strcmp(buf,"measure"))  add_token(TOKEN_MEASURE,buf,line);
             else if (!strcmp(buf,"entangle")) add_token(TOKEN_ENTANGLE,buf,line);
+            else if (!strcmp(buf,"cnot")) add_token(TOKEN_CNOT,buf,line);
             else add_token(TOKEN_IDENT, buf, line);
             continue;
         }

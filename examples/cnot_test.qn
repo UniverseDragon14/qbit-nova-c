@@ -1,0 +1,15 @@
+@nova.v1
+@qbit.enabled
+@quantum.cnot
+
+say "QBIT NOVA CNOT Test"
+
+qbit q = |0>
+qbit p = |0>
+
+hadamard q
+cnot q p
+
+measure q
+say q
+say p

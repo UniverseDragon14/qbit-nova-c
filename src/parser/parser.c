@@ -124,16 +124,15 @@ static ASTNode* parse_stmt() {
         return n;
     }
 
-    /* repeat 5 { } */
-    if (t->type == TOKEN_REPEAT) {
+    /* cnot q p */
+    if (t->type == TOKEN_CNOT) {
         advance();
-        ASTNode *n = new_node(NODE_REPEAT, peek()->value);
+        ASTNode *n = new_node(NODE_CNOT, peek()->value);
         advance();
-        n->body = parse_block();
+        n->left = new_node(NODE_IDENT, peek()->value);
+        advance();
         return n;
     }
-
-    /* action led_on */
     if (t->type == TOKEN_ACTION) {
         advance();
         ASTNode *n = new_node(NODE_ACTION, peek()->value);
