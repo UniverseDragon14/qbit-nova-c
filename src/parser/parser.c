@@ -133,6 +133,14 @@ static ASTNode* parse_stmt() {
         return n;
     }
 
+    /* action led_on */
+    if (t->type == TOKEN_ACTION) {
+        advance();
+        ASTNode *n = new_node(NODE_ACTION, peek()->value);
+        advance();
+        return n;
+    }
+
     /* skip directive + unknown */
     advance();
     return new_node(NODE_IDENT, t->value);

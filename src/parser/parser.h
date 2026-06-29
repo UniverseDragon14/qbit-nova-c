@@ -13,6 +13,7 @@ typedef enum {
     NODE_MEASURE,
     NODE_ENTANGLE,
     NODE_REPEAT,
+    NODE_ACTION,
     NODE_BINOP,
     NODE_STRING,
     NODE_NUMBER,

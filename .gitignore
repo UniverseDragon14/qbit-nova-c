@@ -11,3 +11,4 @@ test_parser
 qbyte-vm
 qnova-byte
 qnova-qbc
+.safe_patch_backup/
