@@ -130,6 +130,8 @@ void execute(ASTNode *node) {
             execute(node->body);
             break;
         }
+        default:
+            break;
     }
     
     execute(node->next);
