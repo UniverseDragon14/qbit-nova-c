@@ -3,6 +3,7 @@
 #include <string.h>
 #include <math.h>
 #include <time.h>
+#include <unistd.h>
 
 #include "bytecode.h"
 #include "../adapter/safe_adapter.h"
@@ -21,6 +22,7 @@ typedef struct {
     double b;
     int measured;
     int result;
+    char entangled_with[64];
 } VMQbit;
 
 static VMVar vars[MAX_VM_VARS];
@@ -146,6 +148,48 @@ static void vm_say(const char *value) {
     printf("%s\n", value);
 }
 
+static void entangle_qbits(const char *left_name, const char *right_name) {
+    VMQbit *left = find_qbit(left_name);
+    VMQbit *right = find_qbit(right_name);
+
+    if (!left || !right) {
+        printf("[QCORE ERROR] cannot entangle missing qbit: %s %s\n", left_name, right_name);
+        return;
+    }
+
+    strcpy(left->entangled_with, right_name);
+    strcpy(right->entangled_with, left_name);
+
+    right->a = left->a;
+    right->b = left->b;
+    right->measured = 0;
+    right->result = 0;
+
+    printf("[QCORE] entangled %s <-> %s\n", left_name, right_name);
+}
+
+static void measure_linked(VMQbit *q) {
+    measure(q);
+
+    if (q->entangled_with[0]) {
+        VMQbit *partner = find_qbit(q->entangled_with);
+        if (partner) {
+            partner->result = q->result;
+            partner->measured = 1;
+
+            if (q->result == 0) {
+                partner->a = 1.0;
+                partner->b = 0.0;
+            } else {
+                partner->a = 0.0;
+                partner->b = 1.0;
+            }
+
+            printf("[QCORE] entangled collapse %s -> %s = |%d>\n", q->name, partner->name, q->result);
+        }
+    }
+}
+
 static void run_safe_action(const char *action) {
     AdapterResult result = adapter_dispatch_safe(action);
 
@@ -155,7 +199,7 @@ static void run_safe_action(const char *action) {
 }
 
 void run_bytecode(Instruction *code, int count) {
-    srand(time(NULL));
+    srand((unsigned)time(NULL) ^ (unsigned)getpid());
 
     printf("=== QBIT NOVA BYTECODE VM ===\n");
 
@@ -187,9 +231,13 @@ void run_bytecode(Instruction *code, int count) {
                 break;
             }
 
+            case OP_ENTANGLE:
+                entangle_qbits(ins.arg1, ins.arg2);
+                break;
+
             case OP_MEASURE: {
                 VMQbit *q = find_qbit(ins.arg1);
-                if (q) measure(q);
+                if (q) measure_linked(q);
                 else printf("[VM ERROR] qbit not found: %s\n", ins.arg1);
                 break;
             }

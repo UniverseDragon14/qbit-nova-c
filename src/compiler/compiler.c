@@ -40,6 +40,10 @@ void compile(ASTNode *node) {
             emit(OP_MEASURE, node->value, NULL, 0);
             break;
 
+        case NODE_ENTANGLE:
+            emit(OP_ENTANGLE, node->value, node->left ? node->left->value : NULL, 0);
+            break;
+
         case NODE_CHECK:
             if (node->left && node->left->left && node->left->right) {
                 emit(OP_CHECK, node->left->left->value, node->left->value, atoi(node->left->right->value));
@@ -102,7 +106,7 @@ int load_qbc(const char *filename) {
 
 void print_bytecode() {
     const char *names[] = {
-        "SAY", "LET", "QBIT", "HADAMARD", "MEASURE",
+        "SAY", "LET", "QBIT", "HADAMARD", "MEASURE", "ENTANGLE",
         "CHECK", "REPEAT", "BLOCK", "END", "SAFE_ACTION"
     };
 

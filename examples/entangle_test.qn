@@ -1,0 +1,15 @@
+@nova.v1
+@qbit.enabled
+@quantum.entangle
+
+say "QBIT NOVA Entangle Test"
+
+qbit q = |0>
+qbit p = |0>
+
+hadamard q
+entangle q p
+
+measure q
+say q
+say p
