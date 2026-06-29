@@ -1,0 +1,16 @@
+@nova.v1
+@qbit.enabled
+
+say "QBIT NOVA - Quantum Test"
+
+qbit q = |0>
+say q
+
+qbit p = |1>
+say p
+
+hadamard q
+say q
+
+measure q
+say q

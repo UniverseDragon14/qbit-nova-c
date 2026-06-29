@@ -1,0 +1,6 @@
+@nova.v1
+say "Universal Dragon"
+let x = 10
+check x > 5 {
+    say "Dragon is powerful"
+}
