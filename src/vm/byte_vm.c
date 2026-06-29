@@ -150,6 +150,11 @@ void run_bytecode(Instruction *code, int count) {
 
     printf("=== QBIT NOVA BYTECODE VM ===\n");
 
+    int repeat_start[64];
+    int repeat_end[64];
+    int repeat_left[64];
+    int repeat_sp = 0;
+
     for (int pc = 0; pc < count; pc++) {
         Instruction ins = code[pc];
 
@@ -212,14 +217,57 @@ void run_bytecode(Instruction *code, int count) {
                 break;
             }
 
-            case OP_REPEAT:
-                printf("[VM TODO] OP_REPEAT not implemented yet\n");
+            case OP_REPEAT: {
+                int end = -1;
+                int depth = 0;
+
+                for (int i = pc + 1; i < count; i++) {
+                    if (code[i].op == OP_CHECK || code[i].op == OP_REPEAT) depth++;
+
+                    if (code[i].op == OP_END) {
+                        if (depth == 0) {
+                            end = i;
+                            break;
+                        }
+                        depth--;
+                    }
+                }
+
+                if (end == -1) {
+                    printf("[VM ERROR] repeat block missing END\n");
+                    return;
+                }
+
+                if (ins.value <= 0) {
+                    pc = end;
+                    break;
+                }
+
+                if (repeat_sp >= 64) {
+                    printf("[VM ERROR] repeat stack overflow\n");
+                    return;
+                }
+
+                repeat_start[repeat_sp] = pc;
+                repeat_end[repeat_sp] = end;
+                repeat_left[repeat_sp] = ins.value;
+                repeat_sp++;
                 break;
+            }
 
             case OP_BLOCK:
                 break;
 
             case OP_END:
+                if (repeat_sp > 0 && pc == repeat_end[repeat_sp - 1]) {
+                    repeat_left[repeat_sp - 1]--;
+
+                    if (repeat_left[repeat_sp - 1] > 0) {
+                        pc = repeat_start[repeat_sp - 1];
+                    } else {
+                        repeat_sp--;
+                    }
+                }
                 break;
 
             case OP_SAFE_ACTION:
