@@ -5,6 +5,7 @@
 #include <time.h>
 
 #include "bytecode.h"
+#include "../adapter/safe_adapter.h"
 
 #define MAX_VM_VARS 64
 #define MAX_VM_QBITS 32
@@ -146,21 +147,12 @@ static void vm_say(const char *value) {
 }
 
 static void run_safe_action(const char *action) {
-    if (strcmp(action, "led_on") == 0) {
-        printf("[SAFE_ACTION] LED_ON allowed (simulation only)\n");
-    } else if (strcmp(action, "led_off") == 0) {
-        printf("[SAFE_ACTION] LED_OFF allowed (simulation only)\n");
-    } else if (strcmp(action, "servo_up") == 0) {
-        printf("[SAFE_ACTION] SERVO_UP allowed (simulation only)\n");
-    } else if (strcmp(action, "servo_down") == 0) {
-        printf("[SAFE_ACTION] SERVO_DOWN allowed (simulation only)\n");
-    } else if (strcmp(action, "buzzer_beep") == 0) {
-        printf("[SAFE_ACTION] BUZZER_BEEP allowed (simulation only)\n");
-    } else {
-        printf("[SAFE_BLOCKED] Unknown or unsafe action blocked: %s\n", action);
+    AdapterResult result = adapter_dispatch_safe(action);
+
+    if (result == ADAPTER_OK) {
+        printf("[SAFE_ACTION] dispatched through adapter contract: %s\n", action);
     }
 }
-
 
 void run_bytecode(Instruction *code, int count) {
     srand(time(NULL));
