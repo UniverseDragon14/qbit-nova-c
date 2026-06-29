@@ -1,0 +1,15 @@
+@nova.v1
+@qbit.enabled
+@hardware.safe
+
+say "QBIT NOVA SAFE ACTION Test"
+
+qbit q = |0>
+hadamard q
+measure q
+say q
+
+action led_on
+action servo_up
+action buzzer_beep
+action dangerous_motor_full_power

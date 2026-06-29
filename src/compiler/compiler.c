@@ -56,6 +56,10 @@ void compile(ASTNode *node) {
             emit(OP_END, NULL, NULL, 0);
             break;
 
+        case NODE_ACTION:
+            emit(OP_SAFE_ACTION, node->value, NULL, 0);
+            break;
+
         case NODE_BLOCK:
             compile(node->body);
             break;

@@ -145,6 +145,23 @@ static void vm_say(const char *value) {
     printf("%s\n", value);
 }
 
+static void run_safe_action(const char *action) {
+    if (strcmp(action, "led_on") == 0) {
+        printf("[SAFE_ACTION] LED_ON allowed (simulation only)\n");
+    } else if (strcmp(action, "led_off") == 0) {
+        printf("[SAFE_ACTION] LED_OFF allowed (simulation only)\n");
+    } else if (strcmp(action, "servo_up") == 0) {
+        printf("[SAFE_ACTION] SERVO_UP allowed (simulation only)\n");
+    } else if (strcmp(action, "servo_down") == 0) {
+        printf("[SAFE_ACTION] SERVO_DOWN allowed (simulation only)\n");
+    } else if (strcmp(action, "buzzer_beep") == 0) {
+        printf("[SAFE_ACTION] BUZZER_BEEP allowed (simulation only)\n");
+    } else {
+        printf("[SAFE_BLOCKED] Unknown or unsafe action blocked: %s\n", action);
+    }
+}
+
+
 void run_bytecode(Instruction *code, int count) {
     srand(time(NULL));
 
@@ -271,7 +288,7 @@ void run_bytecode(Instruction *code, int count) {
                 break;
 
             case OP_SAFE_ACTION:
-                printf("[VM TODO] OP_SAFE_ACTION not implemented yet\n");
+                run_safe_action(ins.arg1);
                 break;
 
             default:
