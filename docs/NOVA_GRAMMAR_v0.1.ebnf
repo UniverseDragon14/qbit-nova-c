@@ -1,0 +1,49 @@
+(* QBIT NOVA Language Grammar v0.1 *)
+(* Creator: Aslam - Universal Dragon *)
+
+program     = { statement } ;
+
+statement   = say_stmt
+            | let_stmt
+            | check_stmt
+            | qbit_stmt
+            | hadamard_stmt
+            | measure_stmt
+            | entangle_stmt
+            | repeat_stmt
+            | action_stmt
+            | directive ;
+
+(* Output *)
+say_stmt    = "say" ( string | identifier ) ;
+
+(* Variables *)
+let_stmt    = "let" identifier "=" expression ;
+
+(* Conditions *)
+check_stmt  = "check" expression block
+              [ "otherwise" block ] ;
+
+(* Quantum *)
+qbit_stmt      = "qbit" identifier "=" state ;
+hadamard_stmt  = "hadamard" identifier ;
+measure_stmt   = "measure" identifier ;
+entangle_stmt  = "entangle" identifier identifier ;
+
+(* Control *)
+repeat_stmt = "repeat" number block ;
+action_stmt = "action" identifier block ;
+
+(* Block *)
+block       = "{" { statement } "}" ;
+
+(* Expressions *)
+expression  = identifier operator value ;
+operator    = ">" | "<" | "==" | ">=" | "<=" ;
+
+(* Primitives *)
+state       = "|0>" | "|1>" | "|+>" | "|->" ;
+string      = '"' { character } '"' ;
+identifier  = letter { letter | digit } ;
+number      = digit { digit } ;
+directive   = "@" identifier [ "." identifier ] ;
