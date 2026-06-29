@@ -12,3 +12,4 @@ qbyte-vm
 qnova-byte
 qnova-qbc
 .safe_patch_backup/
+qstate2-test
