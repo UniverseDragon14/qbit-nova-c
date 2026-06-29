@@ -180,9 +180,37 @@ void run_bytecode(Instruction *code, int count) {
                 break;
             }
 
-            case OP_CHECK:
-                printf("[VM TODO] OP_CHECK not implemented yet\n");
+            case OP_CHECK: {
+                VMVar *v = find_var(ins.arg1);
+                int pass = 0;
+
+                if (!v) {
+                    printf("[VM ERROR] variable not found for check: %s\n", ins.arg1);
+                } else {
+                    double lhs = v->value;
+                    double rhs = ins.value;
+
+                    if (strcmp(ins.arg2, ">") == 0) pass = lhs > rhs;
+                    else if (strcmp(ins.arg2, "<") == 0) pass = lhs < rhs;
+                    else if (strcmp(ins.arg2, "==") == 0) pass = lhs == rhs;
+                    else if (strcmp(ins.arg2, ">=") == 0) pass = lhs >= rhs;
+                    else if (strcmp(ins.arg2, "<=") == 0) pass = lhs <= rhs;
+                    else printf("[VM ERROR] unknown check operator: %s\n", ins.arg2);
+                }
+
+                if (!pass) {
+                    int depth = 0;
+                    while (pc + 1 < count) {
+                        pc++;
+                        if (code[pc].op == OP_CHECK || code[pc].op == OP_REPEAT) depth++;
+                        if (code[pc].op == OP_END) {
+                            if (depth == 0) break;
+                            depth--;
+                        }
+                    }
+                }
                 break;
+            }
 
             case OP_REPEAT:
                 printf("[VM TODO] OP_REPEAT not implemented yet\n");

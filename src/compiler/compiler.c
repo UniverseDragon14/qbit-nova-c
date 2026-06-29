@@ -41,8 +41,11 @@ void compile(ASTNode *node) {
             break;
 
         case NODE_CHECK:
-            compile(node->left);
-            emit(OP_CHECK, NULL, NULL, 0);
+            if (node->left && node->left->left && node->left->right) {
+                emit(OP_CHECK, node->left->left->value, node->left->value, atoi(node->left->right->value));
+            } else {
+                emit(OP_CHECK, NULL, NULL, 0);
+            }
             compile(node->body);
             emit(OP_END, NULL, NULL, 0);
             break;
