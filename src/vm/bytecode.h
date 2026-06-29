@@ -10,6 +10,7 @@ typedef enum {
     OP_HADAMARD,
     OP_MEASURE,
     OP_ENTANGLE,
+    OP_CNOT,
     OP_CHECK,
     OP_REPEAT,
     OP_BLOCK,

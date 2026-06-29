@@ -8,6 +8,7 @@ typedef enum {
     TOKEN_ACTION, TOKEN_QBIT,
     TOKEN_HADAMARD, TOKEN_MEASURE,
     TOKEN_ENTANGLE,
+    TOKEN_CNOT,
 
     /* Quantum states */
     TOKEN_STATE_0, TOKEN_STATE_1,

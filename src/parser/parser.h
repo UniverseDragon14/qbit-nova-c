@@ -12,6 +12,7 @@ typedef enum {
     NODE_HADAMARD,
     NODE_MEASURE,
     NODE_ENTANGLE,
+    NODE_CNOT,
     NODE_REPEAT,
     NODE_ACTION,
     NODE_BINOP,
