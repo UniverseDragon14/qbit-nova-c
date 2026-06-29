@@ -8,3 +8,5 @@ test_parser
 
 # Temp files
 .DS_Store
+qbyte-vm
+qnova-byte
