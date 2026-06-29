@@ -46,8 +46,7 @@ void save_qbc(const char *filename) {
     fwrite(&instr_count, sizeof(int), 1, f);
     fwrite(bytecode, sizeof(Instruction), instr_count, f);
     fclose(f);
-    printf("QBC saved: %s (%d instructions)
-", filename, instr_count);
+    printf("QBC saved: %s (%d instructions)\n", filename, instr_count);
 }
 
 int load_qbc(const char *filename) {
@@ -55,8 +54,7 @@ int load_qbc(const char *filename) {
     fread(&instr_count, sizeof(int), 1, f);
     fread(bytecode, sizeof(Instruction), instr_count, f);
     fclose(f);
-    printf("QBC loaded: %s (%d instructions)
-", filename, instr_count);
+    printf("QBC loaded: %s (%d instructions)\n", filename, instr_count);
     return 1;
 }
 
@@ -67,7 +65,6 @@ void print_bytecode() {
         if(bytecode[i].arg1[0]) printf(" %s", bytecode[i].arg1);
         if(bytecode[i].arg2[0]) printf(" %s", bytecode[i].arg2);
         if(bytecode[i].value) printf(" %d", bytecode[i].value);
-        printf("
-");
+        printf("\n");
     }
 }
