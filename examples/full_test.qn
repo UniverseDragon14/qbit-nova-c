@@ -1,0 +1,23 @@
+@nova.v1
+@qbit.enabled
+
+say "QBIT NOVA AST Test"
+let x = 10
+say x
+
+qbit q = |0>
+say q
+
+hadamard q
+say q
+
+measure q
+say q
+
+check x > 5 {
+    say "Dragon is powerful!"
+}
+
+repeat 3 {
+    say "Loop!"
+}
