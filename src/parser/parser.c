@@ -87,6 +87,15 @@ static ASTNode* parse_stmt() {
         return n;
     }
 
+    /* repeat 3 { block } */
+    if (t->type == TOKEN_REPEAT) {
+        advance();
+        ASTNode *n = new_node(NODE_REPEAT, peek()->value);
+        advance();
+        n->body = parse_block();
+        return n;
+    }
+
     /* qbit q = |0> */
     if (t->type == TOKEN_QBIT) {
         advance();
