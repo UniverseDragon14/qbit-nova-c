@@ -19,3 +19,6 @@ qnova
 qnova-qasm
 \nbuild/\n
 build/
+\nlogs/\n\n.qcpu/\n
+logs/
+.qcpu/

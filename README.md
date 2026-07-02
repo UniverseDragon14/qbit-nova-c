@@ -156,7 +156,7 @@ Run:
     ./scripts/test_all.sh
 
 v2.0 keeps the safety boundary clear: this is a software virtual quantum processor layer, not physical quantum hardware conversion.
-\n| v2.0 | Public release checkpoint |\n| v2.1 | QASM file export bridge |\n
+\n| v2.0 | Public release checkpoint |\n| v2.1 | QASM file export bridge |\n| v2.2 | Virtual QCPU boot layer |\n
 
 ## QASM File Export
 
@@ -169,3 +169,19 @@ This creates:
     build/bell.qasm
 
 The exported file can be used later as the bridge toward Qiskit or real quantum cloud workflows.
+
+
+## Virtual QCPU Boot
+
+Run:
+
+    ./scripts/qcpu_boot.sh
+
+This creates a local virtual QCPU session:
+
+    .qcpu/session.env
+    build/qcpu_node.json
+    build/bell.qasm
+
+This does not convert local hardware into physical quantum hardware.
+It creates a QBIT NOVA software runtime identity layer on top of classical hardware.
