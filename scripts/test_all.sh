@@ -83,4 +83,10 @@ test -f build/qcpu_noise_injection.md
 grep -E "QCPU NOISE INJECTION MATRIX READY|EXPECTED_DETECT: NOISY_BELL_OUTPUT_FOUND|PASS: CLEAN_BELL_PROOF_READY" build/qcpu_noise_injection.md
 
 echo
+echo "=== TEST QCPU RECOVERY MATRIX ==="
+./scripts/qcpu_recovery_matrix.sh
+test -f build/qcpu_recovery_matrix.md
+grep -E "QCPU RECOVERY MATRIX READY|PASS: RECOVERY_MODE_ACTIVE|PASS: CLEAN_BELL_PROOF_AFTER_RECOVERY|PASS: VIRTUAL_QCPU_REBOOTED" build/qcpu_recovery_matrix.md
+
+echo
 echo "ALL QBIT NOVA TESTS PASSED"
