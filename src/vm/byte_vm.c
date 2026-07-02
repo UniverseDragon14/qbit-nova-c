@@ -134,7 +134,14 @@ static void measure(VMQbit *q) {
     }
 }
 
+static void qmsg_print_register(void);
+
 static void vm_say(const char *value) {
+    if (strcmp(value, "qmsg") == 0) {
+        qmsg_print_register();
+        return;
+    }
+
     VMQbit *q = find_qbit(value);
     if (q) {
         print_qbit(q);
@@ -268,6 +275,28 @@ static void qmsg_measure(void) {
 
     qmsg_measured = 1;
     printf("[QMSG] measured virtual qbit packet: %zu bits\n", strlen(qmsg_bits));
+}
+
+
+static void qmsg_print_register(void) {
+    if (!qmsg_encoded) {
+        printf("[QMSG ERROR] qmsg must be encoded before register view\n");
+        return;
+    }
+
+    size_t len = strlen(qmsg_bits);
+
+    printf("[QMSG] virtual qbit register:\n");
+
+    for (size_t i = 0; i < len; i++) {
+        printf("q%zu=|%c>", i, qmsg_bits[i]);
+
+        if ((i + 1) % 8 == 0 || i + 1 == len) {
+            printf("\n");
+        } else {
+            printf(" ");
+        }
+    }
 }
 
 static void qmsg_decode(void) {
