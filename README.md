@@ -1,5 +1,8 @@
 # QBIT NOVA C
 
+[![QBIT NOVA CI](https://github.com/UniverseDragon14/qbit-nova-c/actions/workflows/qbit-nova-ci.yml/badge.svg)](https://github.com/UniverseDragon14/qbit-nova-c/actions/workflows/qbit-nova-ci.yml)
+
+
 Creator: Universal Dragon Aslam
 Project: QBIT NOVA C
 
