@@ -236,3 +236,24 @@ Expected result on normal Raspberry Pi/mobile hardware:
     PASS: VIRTUAL_QCPU_READY
 
 This is honest boundary testing, not fake physical quantum hardware claiming.
+
+| v2.6 | QCPU Noise Injection Matrix |
+
+
+## QCPU Noise Injection Matrix
+
+Run:
+
+    ./scripts/qcpu_noise_injection.sh
+
+This creates:
+
+    build/qcpu_noise_injection.md
+
+The test confirms that clean Bell proof passes while a synthetic noisy Bell sample is detected honestly.
+
+Expected:
+
+    PASS: CLEAN_BELL_PROOF_READY
+    EXPECTED_DETECT: NOISY_BELL_OUTPUT_FOUND
+    QCPU NOISE INJECTION MATRIX READY

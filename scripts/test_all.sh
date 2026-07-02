@@ -77,4 +77,10 @@ test -f build/qcpu_boundary_fit.md
 grep -E "QCPU BOUNDARY FIT MATRIX READY|EXPECTED_FAIL: PHYSICAL_QCPU_NOT_FOUND|PASS: VIRTUAL_QCPU_READY" build/qcpu_boundary_fit.md
 
 echo
+echo "=== TEST QCPU NOISE INJECTION MATRIX ==="
+./scripts/qcpu_noise_injection.sh
+test -f build/qcpu_noise_injection.md
+grep -E "QCPU NOISE INJECTION MATRIX READY|EXPECTED_DETECT: NOISY_BELL_OUTPUT_FOUND|PASS: CLEAN_BELL_PROOF_READY" build/qcpu_noise_injection.md
+
+echo
 echo "ALL QBIT NOVA TESTS PASSED"
