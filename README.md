@@ -315,6 +315,7 @@ Expected:
     PASS: CORE_NOT_MUTATED_BY_FAULT_TIMELINE
 
 | v3.0 | QCPU Hardware Reality Probe |
+| v3.1 | QCPU Hardware Capability Map |
 
 
 ## QCPU Hardware Reality Probe
@@ -334,3 +335,21 @@ Expected:
     EXPECTED_FAIL: PHYSICAL_QCPU_NOT_FOUND
     PASS: VIRTUAL_QCPU_SUPPORTED_BY_CLASSICAL_HOST
     QCPU HARDWARE REALITY PROBE READY
+
+
+## QCPU Hardware Capability Map
+
+Run:
+
+    ./scripts/qcpu_hardware_capability_map.sh
+
+This creates:
+
+    build/qcpu_hardware_capability_map.md
+
+The map reads host capability safely and recommends a Virtual QCPU runtime mode.
+
+Expected:
+
+    QCPU HARDWARE CAPABILITY MAP READY
+    PASS: READ_ONLY_CAPABILITY_MAP

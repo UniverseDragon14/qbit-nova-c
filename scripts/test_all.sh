@@ -108,4 +108,10 @@ test -f build/qcpu_hardware_probe.md
 grep -E "QCPU HARDWARE REALITY PROBE READY|EXPECTED_FAIL: PHYSICAL_QCPU_NOT_FOUND|PASS: VIRTUAL_QCPU_SUPPORTED_BY_CLASSICAL_HOST" build/qcpu_hardware_probe.md
 
 echo
+echo "=== TEST QCPU HARDWARE CAPABILITY MAP ==="
+./scripts/qcpu_hardware_capability_map.sh
+test -f build/qcpu_hardware_capability_map.md
+grep -E "QCPU HARDWARE CAPABILITY MAP READY|PASS: READ_ONLY_CAPABILITY_MAP|VIRTUAL_QCPU_SUPPORTED_BY_CLASSICAL_HOST" build/qcpu_hardware_capability_map.md
+
+echo
 echo "ALL QBIT NOVA TESTS PASSED"
