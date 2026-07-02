@@ -17,3 +17,5 @@ qnova-state2
 qnova
 
 qnova-qasm
+\nbuild/\n
+build/

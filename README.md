@@ -156,4 +156,16 @@ Run:
     ./scripts/test_all.sh
 
 v2.0 keeps the safety boundary clear: this is a software virtual quantum processor layer, not physical quantum hardware conversion.
-\n| v2.0 | Public release checkpoint |\n
+\n| v2.0 | Public release checkpoint |\n| v2.1 | QASM file export bridge |\n
+
+## QASM File Export
+
+Run:
+
+    ./scripts/export_qasm.sh examples/bell_qasm.qn build/bell.qasm
+
+This creates:
+
+    build/bell.qasm
+
+The exported file can be used later as the bridge toward Qiskit or real quantum cloud workflows.
