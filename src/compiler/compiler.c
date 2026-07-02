@@ -53,6 +53,18 @@ void compile(ASTNode *node) {
             emit(OP_CNOT, node->value, node->left ? node->left->value : NULL, 0);
             break;
 
+        case NODE_QMSG:
+            emit(OP_QMSG, node->left ? node->left->value : NULL, NULL, 0);
+            break;
+
+        case NODE_ENCODE_QMSG:
+            emit(OP_ENCODE_QMSG, node->value, NULL, 0);
+            break;
+
+        case NODE_DECODE_QMSG:
+            emit(OP_DECODE_QMSG, node->value, NULL, 0);
+            break;
+
         case NODE_CHECK:
             if (node->left && node->left->left && node->left->right) {
                 emit(OP_CHECK, node->left->left->value, node->left->value, atoi(node->left->right->value));
@@ -117,7 +129,7 @@ void print_bytecode() {
     const char *names[] = {
         "SAY", "LET", "QBIT", "HADAMARD", "MEASURE",
         "ENTANGLE", "CNOT", "CHECK", "REPEAT", "BLOCK",
-        "END", "SAFE_ACTION"
+        "END", "SAFE_ACTION", "QMSG", "ENCODE_QMSG", "DECODE_QMSG"
     };
 
     for (int i = 0; i < instr_count; i++) {

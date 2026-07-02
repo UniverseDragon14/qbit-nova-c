@@ -15,7 +15,10 @@ typedef enum {
     OP_REPEAT,
     OP_BLOCK,
     OP_END,
-    OP_SAFE_ACTION
+    OP_SAFE_ACTION,
+    OP_QMSG,
+    OP_ENCODE_QMSG,
+    OP_DECODE_QMSG
 } OpCode;
 
 typedef enum {

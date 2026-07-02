@@ -96,6 +96,34 @@ static ASTNode* parse_stmt() {
         return n;
     }
 
+    /* qmsg "HI" */
+    if (t->type == TOKEN_QMSG) {
+        advance();
+        ASTNode *n = new_node(NODE_QMSG, "qmsg");
+        Token *val = advance();
+        if (val->type == TOKEN_STRING)
+            n->left = new_node(NODE_STRING, val->value);
+        else
+            n->left = new_node(NODE_IDENT, val->value);
+        return n;
+    }
+
+    /* encode qmsg */
+    if (t->type == TOKEN_ENCODE) {
+        advance();
+        ASTNode *n = new_node(NODE_ENCODE_QMSG, peek()->value);
+        advance();
+        return n;
+    }
+
+    /* decode qmsg */
+    if (t->type == TOKEN_DECODE) {
+        advance();
+        ASTNode *n = new_node(NODE_DECODE_QMSG, peek()->value);
+        advance();
+        return n;
+    }
+
     /* qbit q = |0> */
     if (t->type == TOKEN_QBIT) {
         advance();

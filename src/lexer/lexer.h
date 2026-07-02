@@ -9,6 +9,7 @@ typedef enum {
     TOKEN_HADAMARD, TOKEN_MEASURE,
     TOKEN_ENTANGLE,
     TOKEN_CNOT,
+    TOKEN_QMSG, TOKEN_ENCODE, TOKEN_DECODE,
 
     /* Quantum states */
     TOKEN_STATE_0, TOKEN_STATE_1,
