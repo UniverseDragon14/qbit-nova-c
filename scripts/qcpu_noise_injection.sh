@@ -14,7 +14,14 @@ echo "=== QCPU NOISE INJECTION MATRIX ==="
 echo
 echo "=== BASELINE: CLEAN BELL PROOF ==="
 ./scripts/proof_bell.sh 20 > logs/qcpu_noise_clean_bell.log
-CLEAN_BELL_SUMMARY="$CLEAN_BELL_SUMMARY"
+CLEAN_BELL_SUMMARY="$(grep -E 'bad count: 0|BELL PROOF PASSED' logs/qcpu_noise_clean_bell.log)"
+
+if [ -z "$CLEAN_BELL_SUMMARY" ]; then
+  echo "FAIL: CLEAN_BELL_SUMMARY_EMPTY"
+  cat logs/qcpu_noise_clean_bell.log
+  exit 1
+fi
+
 printf '%s\n' "$CLEAN_BELL_SUMMARY"
 BASELINE_RESULT="PASS: CLEAN_BELL_PROOF_READY"
 
