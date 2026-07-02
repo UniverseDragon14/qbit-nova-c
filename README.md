@@ -216,3 +216,23 @@ This creates:
     build/hypercube_snapshot.md
 
 The snapshot records QCPU node identity, Bell proof summary, QASM preview, Git tag, and safety boundary.
+
+
+## QCPU Boundary Fit Matrix
+
+Run:
+
+    ./scripts/qcpu_boundary_fit.sh
+
+This creates:
+
+    build/qcpu_boundary_fit.md
+
+The matrix records which stones fit and which stones fall.
+
+Expected result on normal Raspberry Pi/mobile hardware:
+
+    EXPECTED_FAIL: PHYSICAL_QCPU_NOT_FOUND
+    PASS: VIRTUAL_QCPU_READY
+
+This is honest boundary testing, not fake physical quantum hardware claiming.
