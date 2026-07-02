@@ -156,7 +156,7 @@ Run:
     ./scripts/test_all.sh
 
 v2.0 keeps the safety boundary clear: this is a software virtual quantum processor layer, not physical quantum hardware conversion.
-\n| v2.0 | Public release checkpoint |\n| v2.1 | QASM file export bridge |\n| v2.2 | Virtual QCPU boot layer |\n| v2.3 | NOVA Hypercube Runtime status layer |\n
+\n| v2.0 | Public release checkpoint |\n| v2.1 | QASM file export bridge |\n| v2.2 | Virtual QCPU boot layer |\n| v2.3 | NOVA Hypercube Runtime status layer |\n| v2.4 | NOVA Hypercube snapshot report |\n
 
 ## QASM File Export
 
@@ -203,3 +203,16 @@ It checks:
 - software safety boundary
 
 This is a software-defined quantum-style runtime layer, not physical quantum hardware.
+
+
+## NOVA Hypercube Snapshot
+
+Run:
+
+    ./scripts/hypercube_snapshot.sh
+
+This creates:
+
+    build/hypercube_snapshot.md
+
+The snapshot records QCPU node identity, Bell proof summary, QASM preview, Git tag, and safety boundary.
