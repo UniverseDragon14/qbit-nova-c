@@ -27,6 +27,7 @@ It builds a software virtual quantum processor layer on top of classical hardwar
 - Unified qnova runner
 - QMSG virtual packet layer
 - QMSG virtual qbit register view
+- OpenQASM exporter
 
 ## Build
 
@@ -77,6 +78,9 @@ Expected output:
 | v1.3 | QMSG virtual packet layer |
 | v1.4 | QMSG virtual qbit register view |
 | v1.5 | Public proof pack |
+| v1.6 | GitHub CI proof tests |
+| v1.7 | CI status badge |
+| v1.8 | OpenQASM export |
 
 ## Vision
 
@@ -89,3 +93,29 @@ QBIT NOVA is a seven-layer experiment:
 5. QMSG message layer
 6. Pi5 quantum node
 7. Future real QPU bridge through OpenQASM
+
+
+## OpenQASM Export
+
+Build exporter:
+
+    gcc src/tools/qasm_export.c \
+        src/lexer/lexer.c \
+        src/parser/parser.c \
+        src/compiler/compiler.c \
+        -o qnova-qasm -lm
+
+Run:
+
+    ./qnova-qasm examples/bell_qasm.qn
+
+Expected output includes:
+
+    OPENQASM 3.0;
+    include "stdgates.inc";
+    qubit[2] q;
+    bit[2] c;
+    h q[0];
+    cx q[0], q[1];
+    c[0] = measure q[0];
+    c[1] = measure q[1];
