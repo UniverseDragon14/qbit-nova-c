@@ -1,0 +1,12 @@
+@nova.v1
+@qbit.enabled
+@qmsg.enabled
+
+say "QBIT NOVA QMSG Register Demo"
+
+qmsg "HI"
+
+encode qmsg
+say qmsg
+measure qmsg
+decode qmsg
