@@ -60,15 +60,15 @@ grep -E 'QBIT_NOVA_VIRTUAL_QCPU|software virtual QCPU' build/qcpu_node.json
 
 echo
 echo "=== TEST NOVA HYPERCUBE RUNTIME ==="
-./scripts/hypercube_status.sh
-grep -E 'NOVA HYPERCUBE RUNTIME READY' <(./scripts/hypercube_status.sh)
-
-echo
-echo "ALL QBIT NOVA TESTS PASSED"
+./scripts/hypercube_status.sh > /tmp/qbit_nova_hypercube_status.log
+cat /tmp/qbit_nova_hypercube_status.log
+grep -E 'NOVA HYPERCUBE RUNTIME READY' /tmp/qbit_nova_hypercube_status.log
 
 echo
 echo "=== TEST NOVA HYPERCUBE SNAPSHOT ==="
 ./scripts/hypercube_snapshot.sh
 test -f build/hypercube_snapshot.md
 grep -E "NOVA Hypercube Runtime Snapshot|Safety Boundary|QASM Preview|Bell Proof Summary" build/hypercube_snapshot.md
-\echo\n\echo "ALL QBIT NOVA TESTS PASSED"\n
+
+echo
+echo "ALL QBIT NOVA TESTS PASSED"
