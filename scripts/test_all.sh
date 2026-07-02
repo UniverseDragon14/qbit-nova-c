@@ -59,4 +59,9 @@ test -f build/bell.qasm
 grep -E 'QBIT_NOVA_VIRTUAL_QCPU|software virtual QCPU' build/qcpu_node.json
 
 echo
+echo "=== TEST NOVA HYPERCUBE RUNTIME ==="
+./scripts/hypercube_status.sh
+grep -E 'NOVA HYPERCUBE RUNTIME READY' <(./scripts/hypercube_status.sh)
+
+echo
 echo "ALL QBIT NOVA TESTS PASSED"
