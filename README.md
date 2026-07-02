@@ -238,6 +238,7 @@ Expected result on normal Raspberry Pi/mobile hardware:
 This is honest boundary testing, not fake physical quantum hardware claiming.
 
 | v2.6 | QCPU Noise Injection Matrix |
+| v2.7 | QCPU Recovery Matrix |
 
 
 ## QCPU Noise Injection Matrix
@@ -257,3 +258,24 @@ Expected:
     PASS: CLEAN_BELL_PROOF_READY
     EXPECTED_DETECT: NOISY_BELL_OUTPUT_FOUND
     QCPU NOISE INJECTION MATRIX READY
+
+
+## QCPU Recovery Matrix
+
+Run:
+
+    ./scripts/qcpu_recovery_matrix.sh
+
+This creates:
+
+    build/qcpu_recovery_matrix.md
+
+The test detects synthetic noise, enters recovery mode, re-runs clean Bell proof, reboots the virtual QCPU, and confirms that the core engine was not mutated.
+
+Expected:
+
+    PASS: NOISE_DETECTED
+    PASS: RECOVERY_MODE_ACTIVE
+    PASS: CLEAN_BELL_PROOF_AFTER_RECOVERY
+    PASS: VIRTUAL_QCPU_REBOOTED
+    QCPU RECOVERY MATRIX READY
