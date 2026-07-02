@@ -156,7 +156,7 @@ Run:
     ./scripts/test_all.sh
 
 v2.0 keeps the safety boundary clear: this is a software virtual quantum processor layer, not physical quantum hardware conversion.
-\n| v2.0 | Public release checkpoint |\n| v2.1 | QASM file export bridge |\n| v2.2 | Virtual QCPU boot layer |\n
+\n| v2.0 | Public release checkpoint |\n| v2.1 | QASM file export bridge |\n| v2.2 | Virtual QCPU boot layer |\n| v2.3 | NOVA Hypercube Runtime status layer |\n
 
 ## QASM File Export
 
@@ -185,3 +185,21 @@ This creates a local virtual QCPU session:
 
 This does not convert local hardware into physical quantum hardware.
 It creates a QBIT NOVA software runtime identity layer on top of classical hardware.
+
+
+## NOVA Hypercube Runtime
+
+Run:
+
+    ./scripts/hypercube_status.sh
+
+This verifies the local NOVA Hypercube Runtime identity using the existing virtual QCPU boot layer.
+
+It checks:
+
+- QCPU node identity
+- QCPU session file
+- QASM export file
+- software safety boundary
+
+This is a software-defined quantum-style runtime layer, not physical quantum hardware.
