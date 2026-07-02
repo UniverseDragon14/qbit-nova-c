@@ -28,6 +28,10 @@ const char* token_name(TokenType t) {
         case TOKEN_HADAMARD:  return "HADAMARD";
         case TOKEN_MEASURE:   return "MEASURE";
         case TOKEN_ENTANGLE:  return "ENTANGLE";
+        case TOKEN_CNOT:      return "CNOT";
+        case TOKEN_QMSG:      return "QMSG";
+        case TOKEN_ENCODE:    return "ENCODE";
+        case TOKEN_DECODE:    return "DECODE";
         case TOKEN_STATE_0:   return "STATE|0>";
         case TOKEN_STATE_1:   return "STATE|1>";
         case TOKEN_STATE_PLUS:return "STATE|+>";
@@ -126,6 +130,9 @@ Token* tokenize(const char *src, int *count) {
             else if (!strcmp(buf,"measure"))  add_token(TOKEN_MEASURE,buf,line);
             else if (!strcmp(buf,"entangle")) add_token(TOKEN_ENTANGLE,buf,line);
             else if (!strcmp(buf,"cnot")) add_token(TOKEN_CNOT,buf,line);
+            else if (!strcmp(buf,"qmsg")) add_token(TOKEN_QMSG,buf,line);
+            else if (!strcmp(buf,"encode")) add_token(TOKEN_ENCODE,buf,line);
+            else if (!strcmp(buf,"decode")) add_token(TOKEN_DECODE,buf,line);
             else add_token(TOKEN_IDENT, buf, line);
             continue;
         }

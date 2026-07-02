@@ -10,6 +10,8 @@
 
 #define MAX_VM_VARS 64
 #define MAX_VM_QBITS 32
+#define QMSG_MAX_CHARS 128
+#define QMSG_MAX_BITS (QMSG_MAX_CHARS * 8 + 1)
 
 typedef struct {
     char name[64];
@@ -210,6 +212,78 @@ static void measure_linked(VMQbit *q) {
     }
 }
 
+
+static char qmsg_text[QMSG_MAX_CHARS];
+static char qmsg_bits[QMSG_MAX_BITS];
+static int qmsg_loaded = 0;
+static int qmsg_encoded = 0;
+static int qmsg_measured = 0;
+
+static void qmsg_set(const char *message) {
+    if (!message || !message[0]) {
+        printf("[QMSG ERROR] empty message\n");
+        return;
+    }
+
+    strncpy(qmsg_text, message, QMSG_MAX_CHARS - 1);
+    qmsg_text[QMSG_MAX_CHARS - 1] = '\0';
+    qmsg_bits[0] = '\0';
+
+    qmsg_loaded = 1;
+    qmsg_encoded = 0;
+    qmsg_measured = 0;
+
+    printf("[QMSG] message loaded: %s\n", qmsg_text);
+}
+
+static void qmsg_encode(void) {
+    if (!qmsg_loaded) {
+        printf("[QMSG ERROR] no qmsg loaded\n");
+        return;
+    }
+
+    int bit_pos = 0;
+
+    for (int i = 0; qmsg_text[i] && bit_pos < QMSG_MAX_BITS - 9; i++) {
+        unsigned char ch = (unsigned char)qmsg_text[i];
+
+        for (int b = 7; b >= 0; b--) {
+            qmsg_bits[bit_pos++] = ((ch >> b) & 1) ? '1' : '0';
+        }
+    }
+
+    qmsg_bits[bit_pos] = '\0';
+    qmsg_encoded = 1;
+    qmsg_measured = 0;
+
+    printf("[QMSG] bits: %s\n", qmsg_bits);
+    printf("[QMSG] virtual qbit packet created: %d bits\n", bit_pos);
+}
+
+static void qmsg_measure(void) {
+    if (!qmsg_encoded) {
+        printf("[QMSG ERROR] qmsg must be encoded before measure\n");
+        return;
+    }
+
+    qmsg_measured = 1;
+    printf("[QMSG] measured virtual qbit packet: %zu bits\n", strlen(qmsg_bits));
+}
+
+static void qmsg_decode(void) {
+    if (!qmsg_encoded) {
+        printf("[QMSG ERROR] qmsg must be encoded before decode\n");
+        return;
+    }
+
+    if (!qmsg_measured) {
+        printf("[QMSG WARN] decoding before measure\n");
+    }
+
+    printf("[QMSG] decoded message: %s\n", qmsg_text);
+}
+
+
 static void run_safe_action(const char *action) {
     AdapterResult result = adapter_dispatch_safe(action);
 
@@ -260,6 +334,11 @@ void run_bytecode(Instruction *code, int count) {
                 break;
 
             case OP_MEASURE: {
+                if (strcmp(ins.arg1, "qmsg") == 0) {
+                    qmsg_measure();
+                    break;
+                }
+
                 VMQbit *q = find_qbit(ins.arg1);
                 if (q) measure_linked(q);
                 else printf("[VM ERROR] qbit not found: %s\n", ins.arg1);
@@ -349,6 +428,20 @@ void run_bytecode(Instruction *code, int count) {
                         repeat_sp--;
                     }
                 }
+                break;
+
+            case OP_QMSG:
+                qmsg_set(ins.arg1);
+                break;
+
+            case OP_ENCODE_QMSG:
+                if (strcmp(ins.arg1, "qmsg") == 0) qmsg_encode();
+                else printf("[QMSG ERROR] unknown encode target: %s\n", ins.arg1);
+                break;
+
+            case OP_DECODE_QMSG:
+                if (strcmp(ins.arg1, "qmsg") == 0) qmsg_decode();
+                else printf("[QMSG ERROR] unknown decode target: %s\n", ins.arg1);
                 break;
 
             case OP_SAFE_ACTION:
