@@ -14,7 +14,15 @@ echo "=== QCPU NOISE INJECTION MATRIX ==="
 echo
 echo "=== BASELINE: CLEAN BELL PROOF ==="
 ./scripts/proof_bell.sh 20 > logs/qcpu_noise_clean_bell.log
-grep -E 'bad count: 0|BELL PROOF PASSED' logs/qcpu_noise_clean_bell.log
+CLEAN_BELL_SUMMARY="$(grep -E 'bad count: 0|BELL PROOF PASSED' logs/qcpu_noise_clean_bell.log)"
+
+if [ -z "$CLEAN_BELL_SUMMARY" ]; then
+  echo "FAIL: CLEAN_BELL_SUMMARY_EMPTY"
+  cat logs/qcpu_noise_clean_bell.log
+  exit 1
+fi
+
+printf '%s\n' "$CLEAN_BELL_SUMMARY"
 BASELINE_RESULT="PASS: CLEAN_BELL_PROOF_READY"
 
 echo
@@ -30,7 +38,7 @@ cat > build/qcpu_noise_sample.txt <<'SAMPLE'
 |11>
 SAMPLE
 
-BAD_COUNT="$(grep -E '^\|01>|^\|10>' build/qcpu_noise_sample.txt | wc -l | tr -d ' ')"
+BAD_COUNT="$(grep -c -E '^\|01>|^\|10>' build/qcpu_noise_sample.txt || true)"
 
 if [ "$BAD_COUNT" -gt 0 ]; then
   NOISE_RESULT="EXPECTED_DETECT: NOISY_BELL_OUTPUT_FOUND"
@@ -45,7 +53,7 @@ echo "$NOISE_RESULT"
 echo
 echo "=== CORE MUTATION CHECK ==="
 CORE_MUTATION="PASS: CORE_NOT_MUTATED_BY_NOISE_TEST"
-git diff -- src include 2>/dev/null > build/qcpu_noise_core_diff.txt || true
+git diff HEAD -- src include 2>/dev/null > build/qcpu_noise_core_diff.txt || true
 
 if [ -s build/qcpu_noise_core_diff.txt ]; then
   CORE_MUTATION="FAIL: CORE_MUTATION_DETECTED"
@@ -84,7 +92,7 @@ Generated UTC: $TIME_UTC
 ## Clean Bell Proof Summary
 
 \`\`\`text
-$(grep -E 'bad count: 0|BELL PROOF PASSED' logs/qcpu_noise_clean_bell.log)
+$CLEAN_BELL_SUMMARY
 \`\`\`
 
 ## Synthetic Noise Sample
