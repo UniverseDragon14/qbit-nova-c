@@ -1,0 +1,14 @@
+@nova.v1
+@qbit.enabled
+@qasm.export
+
+say "QBIT NOVA OpenQASM Export Demo"
+
+qbit q = |0>
+qbit p = |0>
+
+hadamard q
+cnot q p
+
+measure q
+measure p
