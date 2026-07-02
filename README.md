@@ -119,3 +119,16 @@ Expected output includes:
     cx q[0], q[1];
     c[0] = measure q[0];
     c[1] = measure q[1];
+
+
+## Bell State Proof
+
+Run:
+
+    ./scripts/proof_bell.sh 20
+
+Expected result:
+
+    Only |00> and |11> appeared.
+
+This proves the QBIT NOVA state-vector engine preserves Bell-state measurement correlation.
