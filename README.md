@@ -313,3 +313,24 @@ Expected:
 
     QCPU FAULT TIMELINE READY
     PASS: CORE_NOT_MUTATED_BY_FAULT_TIMELINE
+
+| v3.0 | QCPU Hardware Reality Probe |
+
+
+## QCPU Hardware Reality Probe
+
+Run:
+
+    ./scripts/qcpu_hardware_probe.sh
+
+This creates:
+
+    build/qcpu_hardware_probe.md
+
+The probe checks real host hardware safely and reports the honest physical boundary.
+
+Expected:
+
+    EXPECTED_FAIL: PHYSICAL_QCPU_NOT_FOUND
+    PASS: VIRTUAL_QCPU_SUPPORTED_BY_CLASSICAL_HOST
+    QCPU HARDWARE REALITY PROBE READY
