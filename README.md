@@ -132,3 +132,28 @@ Expected result:
     Only |00> and |11> appeared.
 
 This proves the QBIT NOVA state-vector engine preserves Bell-state measurement correlation.
+
+
+## v2.0 Release Checkpoint
+
+QBIT NOVA C v2.0 is the first public release checkpoint.
+
+It includes:
+
+- Public release notes
+- Changelog
+- v2 architecture documentation
+- Quick demo documentation
+- Demo script
+- Bell-state proof
+- OpenQASM export
+- QMSG virtual qbit register
+- CI proof tests
+
+Run:
+
+    ./scripts/demo.sh
+    ./scripts/test_all.sh
+
+v2.0 keeps the safety boundary clear: this is a software virtual quantum processor layer, not physical quantum hardware conversion.
+\n| v2.0 | Public release checkpoint |\n
