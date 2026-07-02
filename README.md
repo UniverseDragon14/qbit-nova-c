@@ -276,3 +276,22 @@ Expected:
     PASS: CLEAN_BELL_PROOF_AFTER_RECOVERY
     PASS: VIRTUAL_QCPU_REBOOTED
     QCPU RECOVERY MATRIX READY
+
+
+## QCPU Fault Memory
+
+Run:
+
+    ./scripts/qcpu_fault_memory.sh
+
+This creates:
+
+    logs/qcpu_fault_memory.log
+    build/qcpu_fault_memory.md
+
+The test records a local proof trail after noise detection and recovery.
+
+Expected:
+
+    QCPU FAULT MEMORY READY
+    PASS: CORE_NOT_MUTATED_BY_FAULT_MEMORY
