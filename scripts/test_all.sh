@@ -102,4 +102,10 @@ test -f build/qcpu_fault_timeline.md
 grep -E "QCPU FAULT TIMELINE READY|PASS: CORE_NOT_MUTATED_BY_FAULT_TIMELINE|Fault events" build/qcpu_fault_timeline.md
 
 echo
+echo "=== TEST QCPU HARDWARE REALITY PROBE ==="
+./scripts/qcpu_hardware_probe.sh
+test -f build/qcpu_hardware_probe.md
+grep -E "QCPU HARDWARE REALITY PROBE READY|EXPECTED_FAIL: PHYSICAL_QCPU_NOT_FOUND|PASS: VIRTUAL_QCPU_SUPPORTED_BY_CLASSICAL_HOST" build/qcpu_hardware_probe.md
+
+echo
 echo "ALL QBIT NOVA TESTS PASSED"
