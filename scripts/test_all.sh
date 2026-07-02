@@ -89,4 +89,11 @@ test -f build/qcpu_recovery_matrix.md
 grep -E "QCPU RECOVERY MATRIX READY|PASS: RECOVERY_MODE_ACTIVE|PASS: CLEAN_BELL_PROOF_AFTER_RECOVERY|PASS: VIRTUAL_QCPU_REBOOTED" build/qcpu_recovery_matrix.md
 
 echo
+echo "=== TEST QCPU FAULT MEMORY ==="
+./scripts/qcpu_fault_memory.sh
+test -f build/qcpu_fault_memory.md
+test -f logs/qcpu_fault_memory.log
+grep -E "QCPU FAULT MEMORY READY|NOISY_BELL_OUTPUT_FOUND|PASS: CORE_NOT_MUTATED_BY_FAULT_MEMORY" build/qcpu_fault_memory.md
+
+echo
 echo "ALL QBIT NOVA TESTS PASSED"
