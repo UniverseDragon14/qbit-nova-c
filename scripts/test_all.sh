@@ -71,4 +71,10 @@ test -f build/hypercube_snapshot.md
 grep -E "NOVA Hypercube Runtime Snapshot|Safety Boundary|QASM Preview|Bell Proof Summary" build/hypercube_snapshot.md
 
 echo
+echo "=== TEST QCPU BOUNDARY FIT MATRIX ==="
+./scripts/qcpu_boundary_fit.sh
+test -f build/qcpu_boundary_fit.md
+grep -E "QCPU BOUNDARY FIT MATRIX READY|EXPECTED_FAIL: PHYSICAL_QCPU_NOT_FOUND|PASS: VIRTUAL_QCPU_READY" build/qcpu_boundary_fit.md
+
+echo
 echo "ALL QBIT NOVA TESTS PASSED"
