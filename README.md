@@ -237,9 +237,6 @@ Expected result on normal Raspberry Pi/mobile hardware:
 
 This is honest boundary testing, not fake physical quantum hardware claiming.
 
-| v2.6 | QCPU Noise Injection Matrix |
-| v2.7 | QCPU Recovery Matrix |
-
 
 ## QCPU Noise Injection Matrix
 
