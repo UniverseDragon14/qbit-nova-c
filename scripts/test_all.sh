@@ -71,4 +71,4 @@ echo "=== TEST NOVA HYPERCUBE SNAPSHOT ==="
 ./scripts/hypercube_snapshot.sh
 test -f build/hypercube_snapshot.md
 grep -E "NOVA Hypercube Runtime Snapshot|Safety Boundary|QASM Preview|Bell Proof Summary" build/hypercube_snapshot.md
-\necho\n\necho "ALL QBIT NOVA TESTS PASSED"\n
+\echo\n\echo "ALL QBIT NOVA TESTS PASSED"\n
