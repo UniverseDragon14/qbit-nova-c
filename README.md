@@ -295,3 +295,21 @@ Expected:
 
     QCPU FAULT MEMORY READY
     PASS: CORE_NOT_MUTATED_BY_FAULT_MEMORY
+
+
+## QCPU Fault Timeline
+
+Run:
+
+    ./scripts/qcpu_fault_timeline.sh
+
+This creates:
+
+    build/qcpu_fault_timeline.md
+
+The timeline summarizes local fault memory events into a readable proof history.
+
+Expected:
+
+    QCPU FAULT TIMELINE READY
+    PASS: CORE_NOT_MUTATED_BY_FAULT_TIMELINE

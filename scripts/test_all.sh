@@ -96,4 +96,10 @@ test -f logs/qcpu_fault_memory.log
 grep -E "QCPU FAULT MEMORY READY|NOISY_BELL_OUTPUT_FOUND|PASS: CORE_NOT_MUTATED_BY_FAULT_MEMORY" build/qcpu_fault_memory.md
 
 echo
+echo "=== TEST QCPU FAULT TIMELINE ==="
+./scripts/qcpu_fault_timeline.sh
+test -f build/qcpu_fault_timeline.md
+grep -E "QCPU FAULT TIMELINE READY|PASS: CORE_NOT_MUTATED_BY_FAULT_TIMELINE|Fault events" build/qcpu_fault_timeline.md
+
+echo
 echo "ALL QBIT NOVA TESTS PASSED"
