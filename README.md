@@ -412,3 +412,23 @@ Expected:
     ADMIT_WORKLOAD
     REJECT_WORKLOAD
     QCPU WORKLOAD ADMISSION CONTROLLER READY
+
+
+## QCPU Workload Execution Wrapper
+
+Run:
+
+    ./scripts/qcpu_workload_execute.sh
+
+This creates:
+
+    .qcpu/workload_execution.env
+    build/qcpu_workload_execution.md
+
+The execution wrapper executes admitted workloads and blocks rejected workloads.
+
+Expected:
+
+    PASS: STANDARD_WORKLOAD_EXECUTED
+    PASS: HEAVY_WORKLOAD_NOT_EXECUTED
+    QCPU WORKLOAD EXECUTION WRAPPER READY

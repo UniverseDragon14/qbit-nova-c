@@ -135,4 +135,11 @@ test -f .qcpu/workload_admission.env
 grep -E "QCPU WORKLOAD ADMISSION CONTROLLER READY|ADMIT_WORKLOAD|REJECT_WORKLOAD|NON_DESTRUCTIVE_WORKLOAD_ADMISSION_CONTROLLER" build/qcpu_workload_admission.md .qcpu/workload_admission.env
 
 echo
+echo "=== TEST QCPU WORKLOAD EXECUTION WRAPPER ==="
+./scripts/qcpu_workload_execute.sh
+test -f build/qcpu_workload_execution.md
+test -f .qcpu/workload_execution.env
+grep -E "QCPU WORKLOAD EXECUTION WRAPPER READY|STANDARD_WORKLOAD_EXECUTED|HEAVY_WORKLOAD_NOT_EXECUTED|NON_DESTRUCTIVE_WORKLOAD_EXECUTION_WRAPPER" build/qcpu_workload_execution.md .qcpu/workload_execution.env
+
+echo
 echo "ALL QBIT NOVA TESTS PASSED"
