@@ -142,6 +142,13 @@ test -f .qcpu/workload_execution.env
 grep -E "QCPU WORKLOAD EXECUTION WRAPPER READY|STANDARD_WORKLOAD_EXECUTED|HEAVY_WORKLOAD_NOT_EXECUTED|NON_DESTRUCTIVE_WORKLOAD_EXECUTION_WRAPPER" build/qcpu_workload_execution.md .qcpu/workload_execution.env
 
 echo
+echo
+echo "=== TEST QCPU CI EVIDENCE GATE ==="
+chmod +x scripts/qcpu_ci_evidence_gate.sh
+./scripts/qcpu_ci_evidence_gate.sh
+grep -F "QCPU CI EVIDENCE GATE READY" build/qcpu_ci_evidence_gate.md .qcpu/ci_evidence_gate.env
+grep -F "PASS: CI_EVIDENCE_GATE_OPENED" build/qcpu_ci_evidence_gate.md .qcpu/ci_evidence_gate.env
+
 echo "ALL QBIT NOVA TESTS PASSED"
 
 echo
