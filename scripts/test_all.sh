@@ -143,3 +143,8 @@ grep -E "QCPU WORKLOAD EXECUTION WRAPPER READY|STANDARD_WORKLOAD_EXECUTED|HEAVY_
 
 echo
 echo "ALL QBIT NOVA TESTS PASSED"
+
+echo
+echo "=== TEST QCPU CI EVIDENCE REPORTER ==="
+./scripts/qcpu_ci_evidence.sh
+grep -R "QCPU CI EVIDENCE REPORTER READY" build/qcpu_ci_evidence.md .qcpu/ci_evidence.env
