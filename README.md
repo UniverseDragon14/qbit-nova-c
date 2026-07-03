@@ -464,3 +464,14 @@ Expected output:
 
 QCPU RELEASE READINESS SEAL READY
 QCPU_RELEASE_STATUS=PASS: QCPU_RELEASE_READY
+
+## QCPU Public Release Manifest
+
+v3.9 adds a public release manifest.
+
+It verifies the v3.8 Release Readiness Seal, confirms the v3 release tag chain, checks required release files, creates a CI-safe release snapshot, and records a public-safe summary.
+
+Expected output:
+
+QCPU PUBLIC RELEASE MANIFEST READY
+PASS: QCPU_PUBLIC_RELEASE_MANIFEST_READY

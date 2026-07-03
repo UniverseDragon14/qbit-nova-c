@@ -156,6 +156,13 @@ chmod +x scripts/qcpu_release_readiness_seal.sh
 grep -F "QCPU RELEASE READINESS SEAL READY" build/qcpu_release_readiness_seal.md
 grep -F "QCPU_RELEASE_STATUS=PASS: QCPU_RELEASE_READY" .qcpu/release_readiness_seal.env
 
+echo
+echo "=== TEST QCPU PUBLIC RELEASE MANIFEST ==="
+chmod +x scripts/qcpu_public_release_manifest.sh
+./scripts/qcpu_public_release_manifest.sh
+grep -F "QCPU PUBLIC RELEASE MANIFEST READY" build/qcpu_public_release_manifest.md
+grep -F "QCPU_PUBLIC_MANIFEST_STATUS=PASS: QCPU_PUBLIC_RELEASE_MANIFEST_READY" .qcpu/public_release_manifest.env
+
 echo "ALL QBIT NOVA TESTS PASSED"
 
 echo
