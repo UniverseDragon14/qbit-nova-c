@@ -121,4 +121,11 @@ test -f .qcpu/runtime_limits.env
 grep -E "QCPU RUNTIME LIMIT GUARD READY|NON_DESTRUCTIVE_RUNTIME_LIMIT_GUARD|QCPU_RUNTIME_MODE" build/qcpu_runtime_limit_guard.md .qcpu/runtime_limits.env
 
 echo
+echo "=== TEST QCPU RUNTIME POLICY ENGINE ==="
+./scripts/qcpu_runtime_policy_engine.sh
+test -f build/qcpu_runtime_policy_engine.md
+test -f .qcpu/runtime_policy.env
+grep -E "QCPU RUNTIME POLICY ENGINE READY|ALLOW_STANDARD_WORKLOAD|BLOCK_HEAVY_WORKLOAD|NON_DESTRUCTIVE_RUNTIME_POLICY_ENGINE" build/qcpu_runtime_policy_engine.md .qcpu/runtime_policy.env
+
+echo
 echo "ALL QBIT NOVA TESTS PASSED"

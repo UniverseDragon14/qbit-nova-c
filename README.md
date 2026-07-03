@@ -372,3 +372,23 @@ Expected:
 
     QCPU RUNTIME LIMIT GUARD READY
     PASS: NON_DESTRUCTIVE_RUNTIME_LIMIT_GUARD
+
+
+## QCPU Runtime Policy Engine
+
+Run:
+
+    ./scripts/qcpu_runtime_policy_engine.sh
+
+This creates:
+
+    .qcpu/runtime_policy.env
+    build/qcpu_runtime_policy_engine.md
+
+The policy engine reads runtime limits and decides whether workloads are allowed or blocked.
+
+Expected:
+
+    ALLOW_STANDARD_WORKLOAD
+    BLOCK_HEAVY_WORKLOAD
+    QCPU RUNTIME POLICY ENGINE READY
