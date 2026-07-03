@@ -353,3 +353,22 @@ Expected:
 
     QCPU HARDWARE CAPABILITY MAP READY
     PASS: READ_ONLY_CAPABILITY_MAP
+
+
+## QCPU Runtime Limit Guard
+
+Run:
+
+    ./scripts/qcpu_runtime_limit_guard.sh
+
+This creates:
+
+    .qcpu/runtime_limits.env
+    build/qcpu_runtime_limit_guard.md
+
+The guard converts hardware capability into safe software runtime limits.
+
+Expected:
+
+    QCPU RUNTIME LIMIT GUARD READY
+    PASS: NON_DESTRUCTIVE_RUNTIME_LIMIT_GUARD
