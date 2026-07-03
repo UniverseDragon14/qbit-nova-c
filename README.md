@@ -442,3 +442,14 @@ It records CI-safe proof that QBIT NOVA can run with hardware fallback protectio
 ```text
 QCPU CI EVIDENCE REPORTER READY
 ```
+
+## QCPU CI Evidence Gate
+
+v3.7 adds a CI evidence gate.
+
+It checks the v3.6 CI Evidence Reporter output and opens only when CI-safe fallback, virtual QCPU support, honest physical QCPU expected-fail, core safety, and non-destructive boundary markers are present.
+
+```text
+QCPU CI EVIDENCE GATE READY
+PASS: CI_EVIDENCE_GATE_OPENED
+```
