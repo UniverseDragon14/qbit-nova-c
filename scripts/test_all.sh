@@ -149,6 +149,13 @@ chmod +x scripts/qcpu_ci_evidence_gate.sh
 grep -F "QCPU CI EVIDENCE GATE READY" build/qcpu_ci_evidence_gate.md .qcpu/ci_evidence_gate.env
 grep -F "PASS: CI_EVIDENCE_GATE_OPENED" build/qcpu_ci_evidence_gate.md .qcpu/ci_evidence_gate.env
 
+echo
+echo "=== TEST QCPU RELEASE READINESS SEAL ==="
+chmod +x scripts/qcpu_release_readiness_seal.sh
+./scripts/qcpu_release_readiness_seal.sh
+grep -F "QCPU RELEASE READINESS SEAL READY" build/qcpu_release_readiness_seal.md
+grep -F "QCPU_RELEASE_STATUS=PASS: QCPU_RELEASE_READY" .qcpu/release_readiness_seal.env
+
 echo "ALL QBIT NOVA TESTS PASSED"
 
 echo

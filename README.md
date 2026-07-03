@@ -453,3 +453,14 @@ It checks the v3.6 CI Evidence Reporter output and opens only when CI-safe fallb
 QCPU CI EVIDENCE GATE READY
 PASS: CI_EVIDENCE_GATE_OPENED
 ```
+
+## QCPU Release Readiness Seal
+
+v3.8 adds a release readiness seal.
+
+It checks that the CI Evidence Gate is open, the virtual QCPU path is supported, the physical QCPU boundary remains honest, and the release chain is safe before allowing the release seal.
+
+Expected output:
+
+QCPU RELEASE READINESS SEAL READY
+QCPU_RELEASE_STATUS=PASS: QCPU_RELEASE_READY
