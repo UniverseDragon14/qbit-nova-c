@@ -128,4 +128,11 @@ test -f .qcpu/runtime_policy.env
 grep -E "QCPU RUNTIME POLICY ENGINE READY|ALLOW_STANDARD_WORKLOAD|BLOCK_HEAVY_WORKLOAD|NON_DESTRUCTIVE_RUNTIME_POLICY_ENGINE" build/qcpu_runtime_policy_engine.md .qcpu/runtime_policy.env
 
 echo
+echo "=== TEST QCPU WORKLOAD ADMISSION CONTROLLER ==="
+./scripts/qcpu_workload_admission.sh
+test -f build/qcpu_workload_admission.md
+test -f .qcpu/workload_admission.env
+grep -E "QCPU WORKLOAD ADMISSION CONTROLLER READY|ADMIT_WORKLOAD|REJECT_WORKLOAD|NON_DESTRUCTIVE_WORKLOAD_ADMISSION_CONTROLLER" build/qcpu_workload_admission.md .qcpu/workload_admission.env
+
+echo
 echo "ALL QBIT NOVA TESTS PASSED"

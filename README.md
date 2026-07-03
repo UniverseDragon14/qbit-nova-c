@@ -392,3 +392,23 @@ Expected:
     ALLOW_STANDARD_WORKLOAD
     BLOCK_HEAVY_WORKLOAD
     QCPU RUNTIME POLICY ENGINE READY
+
+
+## QCPU Workload Admission Controller
+
+Run:
+
+    ./scripts/qcpu_workload_admission.sh
+
+This creates:
+
+    .qcpu/workload_admission.env
+    build/qcpu_workload_admission.md
+
+The admission controller reads runtime policy and admits or rejects workload requests.
+
+Expected:
+
+    ADMIT_WORKLOAD
+    REJECT_WORKLOAD
+    QCPU WORKLOAD ADMISSION CONTROLLER READY
