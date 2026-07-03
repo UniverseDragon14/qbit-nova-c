@@ -114,4 +114,11 @@ test -f build/qcpu_hardware_capability_map.md
 grep -E "QCPU HARDWARE CAPABILITY MAP READY|PASS: READ_ONLY_CAPABILITY_MAP|VIRTUAL_QCPU_SUPPORTED_BY_CLASSICAL_HOST" build/qcpu_hardware_capability_map.md
 
 echo
+echo "=== TEST QCPU RUNTIME LIMIT GUARD ==="
+./scripts/qcpu_runtime_limit_guard.sh
+test -f build/qcpu_runtime_limit_guard.md
+test -f .qcpu/runtime_limits.env
+grep -E "QCPU RUNTIME LIMIT GUARD READY|NON_DESTRUCTIVE_RUNTIME_LIMIT_GUARD|QCPU_RUNTIME_MODE" build/qcpu_runtime_limit_guard.md .qcpu/runtime_limits.env
+
+echo
 echo "ALL QBIT NOVA TESTS PASSED"
