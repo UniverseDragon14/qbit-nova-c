@@ -432,3 +432,13 @@ Expected:
     PASS: STANDARD_WORKLOAD_EXECUTED
     PASS: HEAVY_WORKLOAD_NOT_EXECUTED
     QCPU WORKLOAD EXECUTION WRAPPER READY
+
+## QCPU CI Evidence Reporter
+
+v3.6 adds a CI evidence reporter.
+
+It records CI-safe proof that QBIT NOVA can run with hardware fallback protection.
+
+```text
+QCPU CI EVIDENCE REPORTER READY
+```
