@@ -142,7 +142,6 @@ test -f .qcpu/workload_execution.env
 grep -E "QCPU WORKLOAD EXECUTION WRAPPER READY|STANDARD_WORKLOAD_EXECUTED|HEAVY_WORKLOAD_NOT_EXECUTED|NON_DESTRUCTIVE_WORKLOAD_EXECUTION_WRAPPER" build/qcpu_workload_execution.md .qcpu/workload_execution.env
 
 echo
-echo
 echo "=== TEST QCPU CI EVIDENCE GATE ==="
 chmod +x scripts/qcpu_ci_evidence_gate.sh
 ./scripts/qcpu_ci_evidence_gate.sh
@@ -163,9 +162,11 @@ chmod +x scripts/qcpu_public_release_manifest.sh
 grep -F "QCPU PUBLIC RELEASE MANIFEST READY" build/qcpu_public_release_manifest.md
 grep -F "QCPU_PUBLIC_MANIFEST_STATUS=PASS: QCPU_PUBLIC_RELEASE_MANIFEST_READY" .qcpu/public_release_manifest.env
 
-echo "ALL QBIT NOVA TESTS PASSED"
-
 echo
 echo "=== TEST QCPU CI EVIDENCE REPORTER ==="
+chmod +x scripts/qcpu_ci_evidence.sh
 ./scripts/qcpu_ci_evidence.sh
 grep -R "QCPU CI EVIDENCE REPORTER READY" build/qcpu_ci_evidence.md .qcpu/ci_evidence.env
+
+echo
+echo "ALL QBIT NOVA TESTS PASSED"
