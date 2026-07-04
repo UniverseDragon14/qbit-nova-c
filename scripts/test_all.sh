@@ -183,4 +183,20 @@ chmod +x scripts/qnova_demo.sh
 grep -F "QNOVA PUBLIC DEMO CLI READY" build/qnova_public_demo_cli.md .qcpu/qnova_demo.env
 grep -F "PASS: QNOVA_PUBLIC_DEMO_CLI_READY" build/qnova_public_demo_cli.md .qcpu/qnova_demo.env
 
+
+echo
+echo "=== QNOVA PUBLIC INSTALL CHECK ==="
+
+bash -n install.sh
+
+./install.sh --dry-run > /tmp/qnova_install_dryrun.txt
+cat /tmp/qnova_install_dryrun.txt
+
+grep -F "PASS: QNOVA_INSTALL_DRY_RUN_READY" /tmp/qnova_install_dryrun.txt
+grep -F "QNOVA PUBLIC INSTALL SCRIPT READY" /tmp/qnova_install_dryrun.txt
+grep -F "PASS: QNOVA_PUBLIC_INSTALL_READY" docs/QNOVA_PUBLIC_INSTALL.md
+grep -F "QNOVA Public Install Script" README.md
+
+echo "PASS: QNOVA_PUBLIC_INSTALL_READY"
+
 echo "ALL QBIT NOVA TESTS PASSED"

@@ -533,3 +533,35 @@ v4.1.2 records the builder identity and CI recovery milestone.
 Receipt:
 
     docs/UNIVERSAL_DRAGON_ASLAM_RECEIPT.md
+
+## QNOVA Public Install Script
+
+v4.2 adds a local-user install script for the public QBIT NOVA C demo.
+
+Run from the repository root:
+
+    ./install.sh
+
+Dry-run test:
+
+    ./install.sh --dry-run
+
+After install, the convenience command is:
+
+    qnova-demo
+
+Safety boundary:
+
+- no sudo
+- no hardware mutation
+- no physical quantum hardware claim
+- software virtual QCPU demo only
+
+Docs:
+
+    docs/QNOVA_PUBLIC_INSTALL.md
+
+Verdict:
+
+    QNOVA PUBLIC INSTALL SCRIPT READY
+    PASS: QNOVA_PUBLIC_INSTALL_READY
