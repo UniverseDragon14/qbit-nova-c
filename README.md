@@ -494,3 +494,16 @@ Expected verdict:
 
 QCPU PUBLIC DEMO RUNTIME READY
 PASS: QCPU_PUBLIC_DEMO_RUNTIME_READY
+
+## QNOVA Public Demo CLI
+
+v4.1 adds a public demo CLI.
+
+Run:
+
+    ./scripts/qnova_demo.sh
+
+It prints a clean public receipt for the virtual QCPU public demo chain.
+
+    QNOVA PUBLIC DEMO CLI READY
+    PASS: QNOVA_PUBLIC_DEMO_CLI_READY

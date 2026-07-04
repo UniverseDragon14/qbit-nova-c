@@ -176,4 +176,11 @@ chmod +x scripts/qcpu_public_demo.sh
 grep -F "QCPU PUBLIC DEMO RUNTIME READY" build/qcpu_public_demo_runtime.md
 grep -F "QCPU_PUBLIC_DEMO_STATUS=PASS: QCPU_PUBLIC_DEMO_RUNTIME_READY" .qcpu/public_demo_runtime.env
 
+echo
+echo "=== TEST QNOVA PUBLIC DEMO CLI ==="
+chmod +x scripts/qnova_demo.sh
+./scripts/qnova_demo.sh
+grep -F "QNOVA PUBLIC DEMO CLI READY" build/qnova_public_demo_cli.md .qcpu/qnova_demo.env
+grep -F "PASS: QNOVA_PUBLIC_DEMO_CLI_READY" build/qnova_public_demo_cli.md .qcpu/qnova_demo.env
+
 echo "ALL QBIT NOVA TESTS PASSED"
