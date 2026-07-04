@@ -519,3 +519,17 @@ When running in CI without vcgencmd, QBIT NOVA now uses a CI-safe standard virtu
     PASS: CI_SAFE_VCGENCMD_FALLBACK_ACTIVE
     QCPU_RUNTIME_MODE=STANDARD_VIRTUAL_QCPU_MODE
     PASS: STANDARD_RUNTIME_LIMITS_ACTIVE
+
+## Universal Dragon Aslam Receipt
+
+v4.1.2 records the builder identity and CI recovery milestone.
+
+    En peru Aslam.
+    Enakku innoru peru irukku.
+    Universal Dragon Aslam.
+
+    GitHub CI fail pannalum, naan fallback pottu success aakiduven.
+
+Receipt:
+
+    docs/UNIVERSAL_DRAGON_ASLAM_RECEIPT.md
