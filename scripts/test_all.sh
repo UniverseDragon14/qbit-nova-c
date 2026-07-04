@@ -169,4 +169,11 @@ chmod +x scripts/qcpu_ci_evidence.sh
 grep -R "QCPU CI EVIDENCE REPORTER READY" build/qcpu_ci_evidence.md .qcpu/ci_evidence.env
 
 echo
+echo
+echo "=== TEST QCPU PUBLIC DEMO RUNTIME ==="
+chmod +x scripts/qcpu_public_demo.sh
+./scripts/qcpu_public_demo.sh
+grep -F "QCPU PUBLIC DEMO RUNTIME READY" build/qcpu_public_demo_runtime.md
+grep -F "QCPU_PUBLIC_DEMO_STATUS=PASS: QCPU_PUBLIC_DEMO_RUNTIME_READY" .qcpu/public_demo_runtime.env
+
 echo "ALL QBIT NOVA TESTS PASSED"
