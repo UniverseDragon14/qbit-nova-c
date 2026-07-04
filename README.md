@@ -475,3 +475,22 @@ Expected output:
 
 QCPU PUBLIC RELEASE MANIFEST READY
 PASS: QCPU_PUBLIC_RELEASE_MANIFEST_READY
+
+## QCPU Public Demo Runtime
+
+v4.0 adds a public demo runtime.
+
+It runs the safe public proof chain:
+
+- public release manifest
+- release readiness seal
+- CI evidence chain
+- virtual QCPU boot
+- Bell proof
+- OpenQASM export
+- public demo receipt
+
+Expected verdict:
+
+QCPU PUBLIC DEMO RUNTIME READY
+PASS: QCPU_PUBLIC_DEMO_RUNTIME_READY
