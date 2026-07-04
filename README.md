@@ -507,3 +507,15 @@ It prints a clean public receipt for the virtual QCPU public demo chain.
 
     QNOVA PUBLIC DEMO CLI READY
     PASS: QNOVA_PUBLIC_DEMO_CLI_READY
+
+## CI no-vcgencmd standard fallback
+
+v4.1.1 fixes GitHub Actions compatibility.
+
+GitHub Ubuntu runners do not provide Raspberry Pi vcgencmd.
+
+When running in CI without vcgencmd, QBIT NOVA now uses a CI-safe standard virtual QCPU fallback.
+
+    PASS: CI_SAFE_VCGENCMD_FALLBACK_ACTIVE
+    QCPU_RUNTIME_MODE=STANDARD_VIRTUAL_QCPU_MODE
+    PASS: STANDARD_RUNTIME_LIMITS_ACTIVE
