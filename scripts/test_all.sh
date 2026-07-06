@@ -1,10 +1,14 @@
 #!/usr/bin/env bash
 set -e
-
-# Portable tmp dir: works on Termux (Pi5 / Huawei) and normal Linux.
-# Termux has no /tmp, so fall back to $TMPDIR or $PREFIX/tmp.
-QBIT_TMP_DIR="${TMPDIR:-${PREFIX:-/data/data/com.termux/files/usr}/tmp}"
+if [ -n "${TMPDIR:-}" ]; then
+  QBIT_TMP_DIR="$TMPDIR"
+elif [ -n "${PREFIX:-}" ]; then
+  QBIT_TMP_DIR="$PREFIX/tmp"
+else
+  QBIT_TMP_DIR="/tmp"
+fi
 mkdir -p "$QBIT_TMP_DIR"
+QBIT_QASM_OUT="$QBIT_TMP_DIR/qbit_nova_bell.qasm"
 
 echo "=== BUILD QBIT NOVA ==="
 gcc src/qnova.c \
@@ -43,8 +47,8 @@ gcc src/tools/qasm_export.c \
 
 echo
 echo "=== TEST OpenQASM export ==="
-./qnova-qasm examples/bell_qasm.qn > $QBIT_TMP_DIR/qbit_nova_bell.qasm
-grep -E 'OPENQASM 3.0|include "stdgates.inc"|qubit\[2\] q|bit\[2\] c|h q\[0\]|cx q\[0\], q\[1\]|c\[0\] = measure q\[0\]|c\[1\] = measure q\[1\]' $QBIT_TMP_DIR/qbit_nova_bell.qasm
+./qnova-qasm examples/bell_qasm.qn > $QBIT_QASM_OUT
+grep -E 'OPENQASM 3.0|include "stdgates.inc"|qubit\[2\] q|bit\[2\] c|h q\[0\]|cx q\[0\], q\[1\]|c\[0\] = measure q\[0\]|c\[1\] = measure q\[1\]' $QBIT_QASM_OUT
 
 echo
 echo "=== TEST BELL PROOF SCRIPT ==="
