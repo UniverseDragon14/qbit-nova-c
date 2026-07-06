@@ -1,6 +1,11 @@
 #!/usr/bin/env bash
 set -e
 
+# Portable tmp dir: works on Termux (Pi5 / Huawei) and normal Linux.
+# Termux has no /tmp, so fall back to $TMPDIR or $PREFIX/tmp.
+QBIT_TMP_DIR="${TMPDIR:-${PREFIX:-/data/data/com.termux/files/usr}/tmp}"
+mkdir -p "$QBIT_TMP_DIR"
+
 echo "=== BUILD QBIT NOVA ==="
 gcc src/qnova.c \
     src/lexer/lexer.c \
@@ -38,8 +43,8 @@ gcc src/tools/qasm_export.c \
 
 echo
 echo "=== TEST OpenQASM export ==="
-./qnova-qasm examples/bell_qasm.qn > /tmp/qbit_nova_bell.qasm
-grep -E 'OPENQASM 3.0|include "stdgates.inc"|qubit\[2\] q|bit\[2\] c|h q\[0\]|cx q\[0\], q\[1\]|c\[0\] = measure q\[0\]|c\[1\] = measure q\[1\]' /tmp/qbit_nova_bell.qasm
+./qnova-qasm examples/bell_qasm.qn > $QBIT_TMP_DIR/qbit_nova_bell.qasm
+grep -E 'OPENQASM 3.0|include "stdgates.inc"|qubit\[2\] q|bit\[2\] c|h q\[0\]|cx q\[0\], q\[1\]|c\[0\] = measure q\[0\]|c\[1\] = measure q\[1\]' $QBIT_TMP_DIR/qbit_nova_bell.qasm
 
 echo
 echo "=== TEST BELL PROOF SCRIPT ==="
@@ -60,9 +65,9 @@ grep -E 'QBIT_NOVA_VIRTUAL_QCPU|software virtual QCPU' build/qcpu_node.json
 
 echo
 echo "=== TEST NOVA HYPERCUBE RUNTIME ==="
-./scripts/hypercube_status.sh > /tmp/qbit_nova_hypercube_status.log
-cat /tmp/qbit_nova_hypercube_status.log
-grep -E 'NOVA HYPERCUBE RUNTIME READY' /tmp/qbit_nova_hypercube_status.log
+./scripts/hypercube_status.sh > $QBIT_TMP_DIR/qbit_nova_hypercube_status.log
+cat $QBIT_TMP_DIR/qbit_nova_hypercube_status.log
+grep -E 'NOVA HYPERCUBE RUNTIME READY' $QBIT_TMP_DIR/qbit_nova_hypercube_status.log
 
 echo
 echo "=== TEST NOVA HYPERCUBE SNAPSHOT ==="
@@ -189,11 +194,11 @@ echo "=== QNOVA PUBLIC INSTALL CHECK ==="
 
 bash -n install.sh
 
-./install.sh --dry-run > /tmp/qnova_install_dryrun.txt
-cat /tmp/qnova_install_dryrun.txt
+./install.sh --dry-run > $QBIT_TMP_DIR/qnova_install_dryrun.txt
+cat $QBIT_TMP_DIR/qnova_install_dryrun.txt
 
-grep -F "PASS: QNOVA_INSTALL_DRY_RUN_READY" /tmp/qnova_install_dryrun.txt
-grep -F "QNOVA PUBLIC INSTALL SCRIPT READY" /tmp/qnova_install_dryrun.txt
+grep -F "PASS: QNOVA_INSTALL_DRY_RUN_READY" $QBIT_TMP_DIR/qnova_install_dryrun.txt
+grep -F "QNOVA PUBLIC INSTALL SCRIPT READY" $QBIT_TMP_DIR/qnova_install_dryrun.txt
 grep -F "PASS: QNOVA_PUBLIC_INSTALL_READY" docs/QNOVA_PUBLIC_INSTALL.md
 grep -F "QNOVA Public Install Script" README.md
 
