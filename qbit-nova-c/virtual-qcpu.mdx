@@ -1,0 +1,21 @@
+---
+title: "Virtual QCPU"
+description: "The software virtual QCPU layer."
+---
+
+# Virtual QCPU
+
+The virtual QCPU is a software identity and runtime layer.
+
+It allows QBIT NOVA C to represent quantum-style runtime state on classical hardware.
+
+## Boundary
+
+Expected honest result on normal hardware:
+
+    EXPECTED_FAIL: PHYSICAL_QCPU_NOT_FOUND
+    PASS: VIRTUAL_QCPU_SUPPORTED_BY_CLASSICAL_HOST
+
+This means the system does not pretend that physical quantum hardware exists.
+
+It only confirms that the software virtual QCPU path can run on classical hardware.

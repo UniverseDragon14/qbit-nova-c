@@ -1,0 +1,286 @@
+
+title: "Safety and Truth Boundary" description: "Public truth boundary for QBIT NOVA C."
+
+Safety and Truth Boundary
+
+QBIT NOVA C must stay real, safe, legal, and useful.
+
+Allowed wording
+
+C-based quantum-style runtime
+
+software virtual QCPU
+
+state-vector simulator
+
+Bell-state proof runner
+
+OpenQASM bridge
+
+classical hardware quantum-style simulation
+
+
+Blocked wording
+
+physical quantum computer created by Raspberry Pi
+
+real quantum chip generated in software
+
+phone became quantum hardware
+
+laptop converted into physical quantum processor
+
+
+Rule
+
+No fake proof. No unsafe claims. No private tracking direction. No hidden surveillance direction. EOF
+
+cat > tamil/tamil-explanation.mdx <<'EOF'
+
+title: "Tamil Explanation" description: "QBIT NOVA C explained in Tamil."
+
+தமிழ் விளக்கம்
+
+அஸ்லாம் உருவாக்கி வரும் qbit-nova-c என்பது உண்மையான physical quantum computer அல்ல.
+
+இது C மொழியை அடிப்படையாகக் கொண்ட quantum-style software runtime.
+
+இதன் நோக்கம், Raspberry Pi 5 போன்ற classical hardware-ல் quantum logic எப்படி simulation ஆக இயங்க முடியும் என்பதை software மூலம் சோதிப்பது.
+
+முக்கிய அம்சங்கள்
+
+.qn source language
+
+lexer, parser, AST, compiler
+
+bytecode VM
+
+2-qbit state-vector simulator
+
+Hadamard gate simulation
+
+CNOT simulation
+
+Bell-state proof runner
+
+virtual QCPU / QMSG software layer
+
+OpenQASM bridge
+
+CI proof tests
+
+hardware safety boundary checks
+
+
+உண்மை boundary
+
+அஸ்லாம் physical quantum chip உருவாக்கவில்லை.
+
+ஆனால் classical hardware மேல் software virtual QCPU, Bell proof, state-vector simulation, மற்றும் OpenQASM export போன்ற quantum computing concepts-ஐ சோதிக்கக்கூடிய runtime ஒன்றை கட்டமைத்து வருகிறார்.
+
+EXPECTED_FAIL: PHYSICAL_QCPU_NOT_FOUND
+PASS: VIRTUAL_QCPU_SUPPORTED_BY_CLASSICAL_HOST
+
+இதன் அர்த்தம்:
+
+Raspberry Pi 5-ல் physical quantum processor இல்லை. ஆனால் software virtual QCPU classical hardware-ல் இயங்க முடியும். EOF
+
+echo "✅ pages created"
+
+## Step 3: validate files
+
+```bash
+cd ~/qbit-nova-c || exit 1
+
+echo "=== VALIDATE JSON ==="
+python3 -m json.tool docs.json >/dev/null && echo "✅ docs.json valid"
+
+echo
+echo "=== CHECK REFERENCED FILES EXIST ==="
+for p in \
+  index \
+  qbit-nova-c/what-is-qbit-nova-c \
+  qbit-nova-c/technical-architecture \
+  qbit-nova-c/virtual-qcpu \
+  qbit-nova-c/bell-state-proof \
+  qbit-nova-c/openqasm-bridge \
+  qbit-nova-c/raspberry-pi-5-runtime \
+  ecosystem/universal-dragon-ecosystem \
+  safety/truth-boundary \
+  tamil/tamil-explanation
+do
+  if [ -f "$p.mdx" ]; then
+    echo "✅ $p.mdx"
+  else
+    echo "❌ missing $p.mdx"
+  fi
+done
+
+echo
+echo "=== STATUS ==="
+git status -sb
+
+echo
+echo "=== DIFF STAT ==="
+git diff --stat
+
+Paste output. If README.md still shows modified, commit panna vendam. Only docs files should be staged later.
+cat > safety/truth-boundary.mdx <<'EOF'
+
+title: "Safety and Truth Boundary" description: "Public truth boundary for QBIT NOVA C."
+
+Safety and Truth Boundary
+
+QBIT NOVA C must stay real, safe, legal, and useful.
+
+Allowed wording
+
+C-based quantum-style runtime
+
+software virtual QCPU
+
+state-vector simulator
+
+Bell-state proof runner
+
+OpenQASM bridge
+
+classical hardware quantum-style simulation
+
+
+Blocked wording
+
+physical quantum computer created by Raspberry Pi
+
+real quantum chip generated in software
+
+phone became quantum hardware
+
+laptop converted into physical quantum processor
+
+
+Rule
+
+No fake proof. No unsafe claims. No private tracking direction. No hidden surveillance direction. EOF
+
+cat > tamil/tamil-explanation.mdx <<'EOF'
+
+title: "Tamil Explanation" description: "QBIT NOVA C explained in Tamil."
+
+தமிழ் விளக்கம்
+
+அஸ்லாம் உருவாக்கி வரும் qbit-nova-c என்பது உண்மையான physical quantum computer அல்ல.
+
+இது C மொழியை அடிப்படையாகக் கொண்ட quantum-style software runtime.
+
+இதன் நோக்கம், Raspberry Pi 5 போன்ற classical hardware-ல் quantum logic எப்படி simulation ஆக இயங்க முடியும் என்பதை software மூலம் சோதிப்பது.
+
+முக்கிய அம்சங்கள்
+
+.qn source language
+
+lexer, parser, AST, compiler
+
+bytecode VM
+
+2-qbit state-vector simulator
+
+Hadamard gate simulation
+
+CNOT simulation
+
+Bell-state proof runner
+
+virtual QCPU / QMSG software layer
+
+OpenQASM bridge
+
+CI proof tests
+
+hardware safety boundary checks
+
+
+உண்மை boundary
+
+அஸ்லாம் physical quantum chip உருவாக்கவில்லை.
+
+ஆனால் classical hardware மேல் software virtual QCPU, Bell proof, state-vector simulation, மற்றும் OpenQASM export போன்ற quantum computing concepts-ஐ சோதிக்கக்கூடிய runtime ஒன்றை கட்டமைத்து வருகிறார்.
+
+EXPECTED_FAIL: PHYSICAL_QCPU_NOT_FOUND
+PASS: VIRTUAL_QCPU_SUPPORTED_BY_CLASSICAL_HOST
+
+இதன் அர்த்தம்:
+
+Raspberry Pi 5-ல் physical quantum processor இல்லை. ஆனால் software virtual QCPU classical hardware-ல் இயங்க முடியும். EOF
+
+echo "✅ pages created"
+
+## Step 3: validate files
+
+```bash
+cd ~/qbit-nova-c || exit 1
+
+echo "=== VALIDATE JSON ==="
+python3 -m json.tool docs.json >/dev/null && echo "✅ docs.json valid"
+
+echo
+echo "=== CHECK REFERENCED FILES EXIST ==="
+for p in \
+  index \
+  qbit-nova-c/what-is-qbit-nova-c \
+  qbit-nova-c/technical-architecture \
+  qbit-nova-c/virtual-qcpu \
+  qbit-nova-c/bell-state-proof \
+  qbit-nova-c/openqasm-bridge \
+  qbit-nova-c/raspberry-pi-5-runtime \
+  ecosystem/universal-dragon-ecosystem \
+  safety/truth-boundary \
+  tamil/tamil-explanation
+do
+  if [ -f "$p.mdx" ]; then
+    echo "✅ $p.mdx"
+  else
+    echo "❌ missing $p.mdx"
+  fi
+done
+
+echo
+echo "=== STATUS ==="
+git status -sb
+
+echo
+echo "=== DIFF STAT ==="
+git diff --stat
+
+Paste output. If README.md still shows modified, commit panna vendam. Only docs files should be staged later.
+
+cat > qbit-nova-c/what-is-qbit-nova-c.mdx <<'EOF'
+---
+title: "What is QBIT NOVA C?"
+description: "A clear explanation of QBIT NOVA C."
+---
+
+# What is QBIT NOVA C?
+
+QBIT NOVA C is a C-based quantum-style software runtime created by Universal Dragon Aslam.
+
+It runs on classical hardware such as Raspberry Pi 5 and normal Linux systems.
+
+It includes:
+
+- `.qn` language direction
+- lexer, parser, AST, compiler
+- bytecode VM
+- 2-qbit state-vector simulator
+- Hadamard and CNOT simulation
+- Bell-state proof runner
+- virtual QCPU / QMSG software layer
+- OpenQASM export bridge
+- CI proof tests
+- hardware safety boundary checks
+
+## What it is not
+
+QBIT NOVA C is not a physical quantum computer.
+
+It does not convert Raspberry Pi, phone, or laptop hardware into a real quantum chip.

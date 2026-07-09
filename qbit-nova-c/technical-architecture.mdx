@@ -1,0 +1,24 @@
+---
+title: "Technical Architecture"
+description: "Main layers inside QBIT NOVA C."
+---
+
+# Technical Architecture
+
+QBIT NOVA C is built as a small runtime stack.
+
+## Layers
+
+1. `.qn` source input
+2. Lexer
+3. Parser
+4. AST
+5. Compiler
+6. Bytecode VM
+7. State-vector simulation
+8. Virtual QCPU / QMSG layer
+9. OpenQASM export bridge
+
+## Purpose
+
+The goal is to test quantum-style logic safely on classical hardware without making fake physical quantum hardware claims.

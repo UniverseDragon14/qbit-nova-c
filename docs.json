@@ -1,0 +1,38 @@
+{
+  "$schema": "https://mintlify.com/docs.json",
+  "theme": "mint",
+  "name": "Universal Dragon Aslam",
+  "description": "Public technical documentation for QBIT NOVA C, Universal Dragon, virtual QCPU, Bell-state proof, and OpenQASM bridge.",
+  "colors": {
+    "primary": "#10b981"
+  },
+  "navigation": {
+    "groups": [
+      {
+        "group": "Start",
+        "pages": [
+          "index"
+        ]
+      },
+      {
+        "group": "QBIT NOVA C",
+        "pages": [
+          "qbit-nova-c/what-is-qbit-nova-c",
+          "qbit-nova-c/technical-architecture",
+          "qbit-nova-c/virtual-qcpu",
+          "qbit-nova-c/bell-state-proof",
+          "qbit-nova-c/openqasm-bridge",
+          "qbit-nova-c/raspberry-pi-5-runtime"
+        ]
+      },
+      {
+        "group": "Universal Dragon",
+        "pages": [
+          "ecosystem/universal-dragon-ecosystem",
+          "safety/truth-boundary",
+          "tamil/tamil-explanation"
+        ]
+      }
+    ]
+  }
+}
