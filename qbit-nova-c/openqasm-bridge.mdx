@@ -1,0 +1,25 @@
+---
+title: "OpenQASM Bridge"
+description: "QBIT NOVA C OpenQASM export."
+---
+
+# OpenQASM Bridge
+
+QBIT NOVA C can export simple quantum-style programs into OpenQASM.
+
+Example output includes:
+
+    OPENQASM 3.0;
+    include "stdgates.inc";
+
+    qubit[2] q;
+    bit[2] c;
+
+    h q[0];
+    cx q[0], q[1];
+    c[0] = measure q[0];
+    c[1] = measure q[1];
+
+## Purpose
+
+OpenQASM export creates a future bridge toward quantum tooling such as Qiskit or cloud quantum workflows.

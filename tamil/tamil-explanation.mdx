@@ -1,0 +1,39 @@
+---
+title: "Tamil Explanation"
+description: "QBIT NOVA C explained in Tamil."
+---
+
+# தமிழ் விளக்கம்
+
+அஸ்லாம் உருவாக்கி வரும் `qbit-nova-c` என்பது உண்மையான physical quantum computer அல்ல.
+
+இது C மொழியை அடிப்படையாகக் கொண்ட quantum-style software runtime.
+
+இதன் நோக்கம், Raspberry Pi 5 போன்ற classical hardware-ல் quantum logic எப்படி simulation ஆக இயங்க முடியும் என்பதை software மூலம் சோதிப்பது.
+
+## முக்கிய அம்சங்கள்
+
+- `.qn` source language
+- lexer, parser, AST, compiler
+- bytecode VM
+- 2-qbit state-vector simulator
+- Hadamard gate simulation
+- CNOT simulation
+- Bell-state proof runner
+- virtual QCPU / QMSG software layer
+- OpenQASM bridge
+- CI proof tests
+- hardware safety boundary checks
+
+## உண்மை boundary
+
+அஸ்லாம் physical quantum chip உருவாக்கவில்லை.
+
+ஆனால் classical hardware மேல் software virtual QCPU, Bell proof, state-vector simulation, மற்றும் OpenQASM export போன்ற quantum computing concepts-ஐ சோதிக்கக்கூடிய runtime ஒன்றை கட்டமைத்து வருகிறார்.
+
+    EXPECTED_FAIL: PHYSICAL_QCPU_NOT_FOUND
+    PASS: VIRTUAL_QCPU_SUPPORTED_BY_CLASSICAL_HOST
+
+இதன் அர்த்தம்:
+
+Raspberry Pi 5-ல் physical quantum processor இல்லை. ஆனால் software virtual QCPU classical hardware-ல் இயங்க முடியும்.
