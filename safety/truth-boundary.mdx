@@ -7,32 +7,83 @@ description: "Public truth boundary for QBIT NOVA C."
 
 QBIT NOVA C must stay real, safe, legal, and useful.
 
-Allowed wording
+## Core truth
 
-C-based quantum-style runtime
+QBIT NOVA C is a C-based quantum-style software runtime.
 
-software virtual QCPU
+It runs on classical hardware such as Raspberry Pi 5 and normal Linux systems.
 
-state-vector simulator
+It is not a physical quantum computer.
 
-Bell-state proof runner
+It does not claim that a Raspberry Pi, phone, or laptop becomes a real quantum chip.
 
-OpenQASM bridge
+## Allowed wording
 
-classical hardware quantum-style simulation
+- C-based quantum-style runtime
+- software virtual QCPU
+- state-vector simulator
+- Bell-state proof runner
+- OpenQASM bridge
+- classical hardware quantum-style simulation
+- software virtual quantum processor layer
 
+## Blocked wording
 
-Blocked wording
+- physical quantum computer created by Raspberry Pi
+- real quantum chip generated in software
+- phone became quantum hardware
+- laptop converted into physical quantum processor
+- CPU became a real qubit chip
 
-physical quantum computer created by Raspberry Pi
+## Honest hardware boundary
 
-real quantum chip generated in software
+Expected honest result on normal Raspberry Pi or mobile Linux hardware:
 
-phone became quantum hardware
+    EXPECTED_FAIL: PHYSICAL_QCPU_NOT_FOUND
+    PASS: VIRTUAL_QCPU_SUPPORTED_BY_CLASSICAL_HOST
 
-laptop converted into physical quantum processor
+This means physical quantum hardware is not found.
 
+It also means the software virtual QCPU path can run on classical hardware.
 
-Rule
+## Cybersecurity and public safety
 
-No fake proof. No unsafe claims. No private tracking direction. No hidden surveillance direction.
+Universal Dragon public projects must avoid unsafe claims or unsafe directions.
+
+Blocked public directions:
+
+- account breaking
+- stealing data
+- malware
+- silent persistence
+- bypassing real systems
+- private-person tracking
+- locate-by-photo workflows
+- hidden surveillance
+- unrestricted public terminal access
+
+Allowed public directions:
+
+- defensive diagnostics
+- secret scanning
+- access control
+- logs
+- safe recovery
+- backup and rollback
+- read-only system maps
+- approval-based repair
+- local lab learning
+
+## Rule
+
+No fake proof.
+
+No unsafe claims.
+
+No private tracking direction.
+
+No hidden surveillance direction.
+
+No public secrets.
+
+QBIT NOVA C stays inside software simulation, safe research, and public technical proof boundaries.
