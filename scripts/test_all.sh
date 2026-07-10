@@ -221,3 +221,7 @@ echo "=== TEST QCPU PHYSICAL QUANTUM CLAIM TRIAL ==="
 echo
 echo "=== TEST QCPU GHZ STATE-N PROOF ==="
 ./scripts/proof_ghz.sh 3 20
+
+echo
+echo "=== TEST QCPU CIRCUIT VM ==="
+./scripts/proof_qcircuit.sh
