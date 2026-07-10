@@ -1,0 +1,6 @@
+# QBIT NOVA Circuit VM example
+# GHZ on 3 qubits
+
+qubits 3
+ghz
+measure

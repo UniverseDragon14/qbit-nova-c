@@ -209,3 +209,19 @@ grep -F "QNOVA Public Install Script" README.md
 echo "PASS: QNOVA_PUBLIC_INSTALL_READY"
 
 echo "ALL QBIT NOVA TESTS PASSED"
+
+echo
+echo "=== TEST QCPU BELL SHOTS REPORTER ==="
+./scripts/qcpu_bell_shots_reporter.sh
+
+echo
+echo "=== TEST QCPU PHYSICAL QUANTUM CLAIM TRIAL ==="
+./scripts/qcpu_physical_quantum_claim_trial.sh
+
+echo
+echo "=== TEST QCPU GHZ STATE-N PROOF ==="
+./scripts/proof_ghz.sh 3 20
+
+echo
+echo "=== TEST QCPU CIRCUIT VM ==="
+./scripts/proof_qcircuit.sh
