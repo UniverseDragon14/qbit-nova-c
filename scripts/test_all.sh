@@ -213,3 +213,7 @@ echo "ALL QBIT NOVA TESTS PASSED"
 echo
 echo "=== TEST QCPU BELL SHOTS REPORTER ==="
 ./scripts/qcpu_bell_shots_reporter.sh
+
+echo
+echo "=== TEST QCPU PHYSICAL QUANTUM CLAIM TRIAL ==="
+./scripts/qcpu_physical_quantum_claim_trial.sh
