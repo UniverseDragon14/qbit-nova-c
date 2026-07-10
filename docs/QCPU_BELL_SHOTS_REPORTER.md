@@ -1,20 +1,36 @@
 # QCPU Bell Shots Reporter
 
-The QCPU Bell Shots Reporter runs the clean Bell proof multiple times and records the observed Bell outcomes.
+The QCPU Bell Shots Reporter runs the clean Bell proof multiple times and records the measured Bell outcomes.
 
 ## Purpose
 
 It strengthens the public QBIT NOVA C proof chain by showing that the Bell demo remains inside the expected software-simulator boundary.
 
-## Valid outcomes
+## Important parser rule
 
-For the clean Bell proof, the valid correlated outcomes are:
+The reporter parses only the measured-result line:
+
+[STATE2] MEASURE pair
+
+It does not treat state-vector amplitude labels as measured outcomes.
+
+Example amplitude trace:
+
+|01>=0.000
+
+This is not an invalid measurement. It is a basis label with zero amplitude.
+
+## Valid measured outcomes
+
+For the clean Bell proof, the valid correlated measured outcomes are:
+
 - |00>
 - |11>
 
-## Invalid outcomes
+## Invalid measured outcomes
 
-The reporter blocks the report if these appear:
+The reporter blocks the report if these appear as measured results:
+
 - |01>
 - |10>
 

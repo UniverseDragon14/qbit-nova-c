@@ -57,25 +57,35 @@ COUNT_UNKNOWN=0
 
 for i in $(seq 1 "$SHOTS"); do
   OUT="$(./qnova examples/bell_state2.qn 2>&1 || true)"
+
   echo "===== SHOT $i =====" >> "$RAW_LOG"
   echo "$OUT" >> "$RAW_LOG"
 
-  if echo "$OUT" | grep -q "|01>"; then
-    COUNT_01=$((COUNT_01 + 1))
-    echo "shot $i: |01> INVALID"
-  elif echo "$OUT" | grep -q "|10>"; then
-    COUNT_10=$((COUNT_10 + 1))
-    echo "shot $i: |10> INVALID"
-  elif echo "$OUT" | grep -q "|11>"; then
-    COUNT_11=$((COUNT_11 + 1))
-    echo "shot $i: |11> OK"
-  elif echo "$OUT" | grep -q "|00>"; then
-    COUNT_00=$((COUNT_00 + 1))
-    echo "shot $i: |00> OK"
-  else
-    COUNT_UNKNOWN=$((COUNT_UNKNOWN + 1))
-    echo "shot $i: UNKNOWN"
-  fi
+  MEASURE_LINE="$(printf '%s\n' "$OUT" | grep -E '^\[STATE2\] MEASURE pair \|[01][01]>' | tail -n 1 || true)"
+  RESULT="$(printf '%s\n' "$MEASURE_LINE" | awk '{print $4}')"
+
+  case "$RESULT" in
+    "|00>")
+      COUNT_00=$((COUNT_00 + 1))
+      echo "shot $i: |00> OK"
+      ;;
+    "|11>")
+      COUNT_11=$((COUNT_11 + 1))
+      echo "shot $i: |11> OK"
+      ;;
+    "|01>")
+      COUNT_01=$((COUNT_01 + 1))
+      echo "shot $i: |01> INVALID"
+      ;;
+    "|10>")
+      COUNT_10=$((COUNT_10 + 1))
+      echo "shot $i: |10> INVALID"
+      ;;
+    *)
+      COUNT_UNKNOWN=$((COUNT_UNKNOWN + 1))
+      echo "shot $i: UNKNOWN"
+      ;;
+  esac
 done
 
 BAD_COUNT=$((COUNT_01 + COUNT_10 + COUNT_UNKNOWN))
@@ -96,7 +106,7 @@ if [ "$BAD_COUNT" -eq 0 ] && [ "$GOOD_COUNT" -eq "$SHOTS" ]; then
   DECISION="ALLOW_BELL_SHOTS_REPORT"
   echo "$STATUS"
 else
-  STATUS="FAIL: QCPU_BELL_SHOTS_INVALID_OUTPUT_FOUND"
+  STATUS="FAIL: QCPU_BELL_SHOTS_INVALID_MEASUREMENT_FOUND"
   DECISION="BLOCK_BELL_SHOTS_REPORT"
   echo "$STATUS"
   exit 1
@@ -139,11 +149,11 @@ Generated UTC: $UTC
 
 | Result | Count | Status |
 |---|---:|---|
-| |00> | $COUNT_00 | valid Bell outcome |
-| |11> | $COUNT_11 | valid Bell outcome |
-| |01> | $COUNT_01 | invalid for clean Bell proof |
-| |10> | $COUNT_10 | invalid for clean Bell proof |
-| Unknown | $COUNT_UNKNOWN | invalid / unreadable |
+| \|00> | $COUNT_00 | valid measured Bell outcome |
+| \|11> | $COUNT_11 | valid measured Bell outcome |
+| \|01> | $COUNT_01 | invalid measured outcome for clean Bell proof |
+| \|10> | $COUNT_10 | invalid measured outcome for clean Bell proof |
+| Unknown | $COUNT_UNKNOWN | invalid or unreadable measurement |
 
 ## Decision
 
@@ -155,19 +165,33 @@ Generated UTC: $UTC
 | Decision | $DECISION |
 | Status | $STATUS |
 
+## Parser Rule
+
+The reporter reads only this measured-result line:
+
+[STATE2] MEASURE pair
+
+It ignores state-vector amplitude trace lines such as:
+
+\|01>=0.000
+
+because those are basis labels, not measured outcomes.
+
 ## Boundary Statement
 
 This Bell shots reporter is software-only.
 
 It does not claim physical quantum hardware.
 
-It checks that the clean Bell proof produces only valid correlated outcomes:
-- |00>
-- |11>
+It checks that the clean Bell proof produces only valid correlated measured outcomes:
 
-Invalid outcomes are blocked:
-- |01>
-- |10>
+- \|00>
+- \|11>
+
+Invalid measured outcomes are blocked:
+
+- \|01>
+- \|10>
 
 ## Verdict
 
@@ -182,7 +206,7 @@ ls -lh "$REPORT" "$ENV_FILE" "$RAW_LOG"
 
 echo
 echo "=== REPORT PREVIEW ==="
-sed -n '1,120p' "$REPORT"
+sed -n '1,140p' "$REPORT"
 
 echo
 echo "QCPU BELL SHOTS REPORTER READY"
