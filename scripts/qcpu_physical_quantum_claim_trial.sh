@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-set -u
+set -euo pipefail
+
 echo "=== QCPU PHYSICAL QUANTUM CLAIM TRIAL (honest) ==="
 mkdir -p build .qcpu
 REPORT="build/qcpu_physical_quantum_claim_trial.md"
@@ -32,13 +33,17 @@ gcc src/qnova.c \
 
 if ./qnova examples/bell_state2.qn 2>/dev/null | grep -q "MEASURE pair"; then
   VIRT="PASS: SOFTWARE_VIRTUAL_QCPU_WORKS"
+  DECISION="HONEST: PI_IS_NOT_PHYSICAL_QUANTUM_BUT_VIRTUAL_QCPU_VALID"
+  FINAL_STATUS="PASS: HONEST_CLAIM_TRIAL_READY"
+  EXIT_CODE=0
 else
   VIRT="FAIL: SOFTWARE_VIRTUAL_QCPU_NOT_WORKING"
+  DECISION="HONEST: PI_IS_NOT_PHYSICAL_QUANTUM_AND_VIRTUAL_QCPU_INVALID"
+  FINAL_STATUS="FAIL: HONEST_CLAIM_TRIAL_VIRTUAL_QCPU_BROKEN"
+  EXIT_CODE=1
 fi
-echo "virtual qcpu: $VIRT"
 
-# STEP 4: honest verdict (no "manual review" fudge)
-DECISION="HONEST: PI_IS_NOT_PHYSICAL_QUANTUM_BUT_VIRTUAL_QCPU_VALID"
+echo "virtual qcpu: $VIRT"
 echo "verdict: $DECISION"
 
 cat > "$REPORT" <<MD
@@ -81,14 +86,18 @@ OpenQASM bridge — not physical qubit hardware.
 ## Verdict
 
 $DECISION
+
+$FINAL_STATUS
 MD
 
 {
   echo "QCPU_CLAIM_PHYSICAL=$PHYS"
   echo "QCPU_CLAIM_VIRTUAL=$VIRT"
   echo "QCPU_CLAIM_DECISION=$DECISION"
+  echo "QCPU_CLAIM_STATUS=$FINAL_STATUS"
   echo "QCPU_CLAIM_CREATED_UTC=$UTC"
 } > "$ENVF"
 
 echo "report: $REPORT"
-echo "PASS: HONEST_CLAIM_TRIAL_READY"
+echo "$FINAL_STATUS"
+exit "$EXIT_CODE"
