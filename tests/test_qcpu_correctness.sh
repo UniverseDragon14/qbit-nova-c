@@ -143,7 +143,7 @@ echo
 echo "=== FINAL SUCCESS MARKER ORDER ==="
 FINAL_LINE="$(grep -n 'echo "ALL QBIT NOVA TESTS PASSED"' scripts/test_all.sh | tail -n 1 | cut -d: -f1)"
 CIRCUIT_LINE="$(grep -n './scripts/proof_qcircuit.sh' scripts/test_all.sh | tail -n 1 | cut -d: -f1)"
-REGRESSION_LINE="$(grep -n './tests/test_qcpu_correctness.sh' scripts/test_all.sh | tail -n 1 | cut -d: -f1)"
+REGRESSION_LINE="$(grep -nF 'tests/test_qcpu_correctness.sh' scripts/test_all.sh | tail -n 1 | cut -d: -f1)"
 
 [ -n "$FINAL_LINE" ] || fail "final all-tests marker missing"
 [ -n "$CIRCUIT_LINE" ] || fail "circuit proof invocation missing"
