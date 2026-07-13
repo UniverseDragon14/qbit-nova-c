@@ -7,6 +7,16 @@ cd "$ROOT"
 N="${1:-3}"
 RUNS="${2:-20}"
 
+if ! [[ "$N" =~ ^[0-9]+$ ]] || [ "$N" -lt 2 ] || [ "$N" -gt 16 ]; then
+  echo "ERROR: N must be an integer in the range 2..16" >&2
+  exit 1
+fi
+
+if ! [[ "$RUNS" =~ ^[1-9][0-9]*$ ]]; then
+  echo "ERROR: RUNS must be a positive integer" >&2
+  exit 1
+fi
+
 mkdir -p build logs .qcpu
 
 BIN="${TMPDIR:-/tmp}/qbit-nova-ghz-$$"
