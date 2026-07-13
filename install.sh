@@ -24,15 +24,16 @@ if [ ! -f "$ROOT_DIR/scripts/test_all.sh" ]; then
   exit 1
 fi
 
-chmod +x "$ROOT_DIR/scripts/qnova_demo.sh"
-chmod +x "$ROOT_DIR/scripts/test_all.sh"
-
 if [ "$DRY_RUN" = "1" ]; then
-  echo "dry-run: no files installed"
+  echo "dry-run: no files installed or permissions changed"
   echo "PASS: QNOVA_INSTALL_DRY_RUN_READY"
   echo "QNOVA PUBLIC INSTALL SCRIPT READY"
+  echo "PASS: QNOVA_PUBLIC_INSTALL_READY"
   exit 0
 fi
+
+chmod +x "$ROOT_DIR/scripts/qnova_demo.sh"
+chmod +x "$ROOT_DIR/scripts/test_all.sh"
 
 mkdir -p "$BIN_DIR"
 
@@ -66,3 +67,4 @@ echo "Try:"
 echo "  qnova-demo"
 echo
 echo "QNOVA PUBLIC INSTALL SCRIPT READY"
+echo "PASS: QNOVA_PUBLIC_INSTALL_READY"
