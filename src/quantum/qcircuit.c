@@ -176,19 +176,24 @@ static void load_circuit(const char *path) {
         if (got < 1) continue;
 
         if (!strcmp(kw, "qubits")) {
+            if (got != 2) fail("qubits requires exactly one integer operand");
             NQ = q1;
             if (NQ < 1 || NQ > MAX_QUBITS) fail("qubits must be 1..16");
         } else if (!strcmp(kw, "ghz")) {
+            if (got != 1) fail("ghz does not accept operands");
             add_ghz();
         } else if (!strcmp(kw, "h") || !strcmp(kw, "x") || !strcmp(kw, "y") ||
                    !strcmp(kw, "z") || !strcmp(kw, "s") || !strcmp(kw, "t")) {
+            if (got != 2) fail("single-qubit gate requires exactly one integer operand");
             require_qubit(q1);
             add_op(kw, q1, 0);
         } else if (!strcmp(kw, "cx") || !strcmp(kw, "swap")) {
+            if (got != 3) fail("two-qubit gate requires exactly two integer operands");
             require_qubit(q1);
             require_qubit(q2);
             add_op(kw, q1, q2);
         } else if (!strcmp(kw, "measure")) {
+            if (got != 1) fail("measure does not accept operands");
             HAS_MEASURE = 1;
         } else {
             fprintf(stderr, "ERROR: unknown circuit op: %s\n", kw);

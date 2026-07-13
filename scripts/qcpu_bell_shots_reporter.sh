@@ -9,6 +9,11 @@ mkdir -p build .qcpu
 SHOTS="${QCPU_BELL_SHOTS:-20}"
 MAX_SHOTS="100"
 
+if ! [[ "$SHOTS" =~ ^[1-9][0-9]*$ ]]; then
+  echo "ERROR: requested shots must be a positive integer"
+  exit 1
+fi
+
 if [ "$SHOTS" -gt "$MAX_SHOTS" ]; then
   echo "ERROR: requested shots $SHOTS exceeds max $MAX_SHOTS"
   exit 1
