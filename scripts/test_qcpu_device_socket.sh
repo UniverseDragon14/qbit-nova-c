@@ -286,12 +286,37 @@ import time
 client = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
 client.connect(sys.argv[1])
 client.sendall(b"\x00")
-time.sleep(3.0)
+time.sleep(10.0)
 client.close()
 PYSTALL
 
 STALL_PID=$!
-wait "$STALL_PID"
+
+for ((attempt = 0; attempt < 120; ++attempt)); do
+  if grep -Fq "ERROR: request read timeout" "$PERSIST_LOG"; then
+    break
+  fi
+
+  if ! kill -0 "$STALL_PID" 2>/dev/null; then
+    wait "$STALL_PID" 2>/dev/null || true
+    echo "FAIL: stalled client exited before daemon timeout marker"
+    exit 1
+  fi
+
+  sleep 0.05
+done
+
+if ! grep -Fq "ERROR: request read timeout" "$PERSIST_LOG"; then
+  kill "$STALL_PID" 2>/dev/null || true
+  wait "$STALL_PID" 2>/dev/null || true
+  echo "FAIL: stalled client did not trigger bounded I/O timeout"
+  exit 1
+fi
+
+echo "PASS: QCPUD_TIMEOUT_MARKER_OBSERVED_BEFORE_CLIENT_DISCONNECT"
+
+kill "$STALL_PID" 2>/dev/null || true
+wait "$STALL_PID" 2>/dev/null || true
 
 sleep 0.2
 kill -0 "$DAEMON_PID"
