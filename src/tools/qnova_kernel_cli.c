@@ -1,5 +1,6 @@
 #include "../quantum/qcpu_kernel.h"
 
+#include <ctype.h>
 #include <complex.h>
 #include <errno.h>
 #include <stdint.h>
@@ -40,6 +41,18 @@ static size_t parse_size(
 ) {
     char *end = NULL;
     unsigned long long value;
+    const unsigned char *cursor =
+        (const unsigned char *)text;
+    int negative = 0;
+
+    while (
+        *cursor != '\0' &&
+        isspace(*cursor)
+    ) {
+        ++cursor;
+    }
+
+    negative = *cursor == '-';
 
     errno = 0;
 
@@ -50,6 +63,7 @@ static size_t parse_size(
     );
 
     if (
+        negative ||
         errno != 0 ||
         end == text ||
         *end != '\0' ||

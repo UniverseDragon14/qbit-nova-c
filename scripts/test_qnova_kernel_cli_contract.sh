@@ -68,4 +68,65 @@ printf '%s\n' "$OUTPUT" |
 grep -Fq \
   "PASS: QCPU_EXPANSION_COLLAPSE_KERNEL_READY"
 
+expect_invalid_size() {
+  local label="$1"
+  local expected="$2"
+
+  shift 2
+
+  local output
+  local rc
+
+  set +e
+
+  output="$(
+    timeout 5 \
+      "$BINARY" \
+      "$@" \
+      2>&1
+  )"
+
+  rc=$?
+
+  set -e
+
+  if [ "$rc" -eq 0 ]; then
+    echo "FAIL: $label unexpectedly succeeded"
+    printf '%s\n' "$output"
+    exit 1
+  fi
+
+  if [ "$rc" -eq 124 ]; then
+    echo "FAIL: $label timed out"
+    exit 1
+  fi
+
+  printf '%s\n' "$output" |
+  grep -Fq "$expected"
+
+  echo "PASS: $label rejected"
+}
+
+expect_invalid_size \
+  "negative qubit count" \
+  "ERROR: invalid qubit count: -1" \
+  -1 \
+  20 \
+  424242
+
+expect_invalid_size \
+  "negative shot count" \
+  "ERROR: invalid shot count: -1" \
+  3 \
+  -1 \
+  424242
+
+expect_invalid_size \
+  "space-prefixed negative shot count" \
+  "ERROR: invalid shot count:  -1" \
+  3 \
+  " -1" \
+  424242
+
+echo "PASS: QNOVA_KERNEL_NEGATIVE_SIZE_REJECTION_READY"
 echo "PASS: QNOVA_KERNEL_CLI_CONTRACT_READY"

@@ -20,6 +20,18 @@ static int qcpu_kernel_ready(
            ((size_t)1U << kernel->qubit_count);
 }
 
+static size_t qcpu_qubit_mask(
+    const QCPUKernel *kernel,
+    size_t qubit
+) {
+    return (size_t)1U <<
+           (
+               kernel->qubit_count -
+               1U -
+               qubit
+           );
+}
+
 static uint64_t qcpu_rng_next(
     QCPUKernel *kernel
 ) {
@@ -172,7 +184,10 @@ QCPUStatus qcpu_kernel_apply_h(
         return QCPU_ERR_RANGE;
     }
 
-    mask = (size_t)1U << qubit;
+    mask = qcpu_qubit_mask(
+        kernel,
+        qubit
+    );
     scale = 1.0 / sqrt(2.0);
 
     for (size_t index = 0U;
@@ -216,7 +231,10 @@ QCPUStatus qcpu_kernel_apply_x(
         return QCPU_ERR_RANGE;
     }
 
-    mask = (size_t)1U << qubit;
+    mask = qcpu_qubit_mask(
+        kernel,
+        qubit
+    );
 
     for (size_t index = 0U;
          index < kernel->state_count;
@@ -262,11 +280,15 @@ QCPUStatus qcpu_kernel_apply_cx(
         return QCPU_ERR_RANGE;
     }
 
-    control_mask =
-        (size_t)1U << control;
+    control_mask = qcpu_qubit_mask(
+        kernel,
+        control
+    );
 
-    target_mask =
-        (size_t)1U << target;
+    target_mask = qcpu_qubit_mask(
+        kernel,
+        target
+    );
 
     for (size_t index = 0U;
          index < kernel->state_count;

@@ -78,6 +78,119 @@ int main(void) {
     );
 
     require_status(
+        qcpu_kernel_reset(&kernel),
+        QCPU_OK,
+        "reset_before_msb_x_test"
+    );
+
+    require_status(
+        qcpu_kernel_apply_x(
+            &kernel,
+            0U
+        ),
+        QCPU_OK,
+        "apply_x_to_q0"
+    );
+
+    require_true(
+        cabs(
+            kernel.amplitudes[4U] -
+            1.0
+        ) < 1e-12,
+        "q0_x_maps_to_state_100"
+    );
+
+    require_true(
+        cabs(
+            kernel.amplitudes[1U]
+        ) < 1e-12,
+        "q0_does_not_map_to_state_001"
+    );
+
+    printf(
+        "PASS: QCPU_Q0_MSB_X_MAPPING_READY\n"
+    );
+
+    require_status(
+        qcpu_kernel_reset(&kernel),
+        QCPU_OK,
+        "reset_before_msb_h_test"
+    );
+
+    require_status(
+        qcpu_kernel_apply_h(
+            &kernel,
+            0U
+        ),
+        QCPU_OK,
+        "apply_h_to_q0"
+    );
+
+    require_true(
+        cabs(
+            kernel.amplitudes[0U] -
+            expected
+        ) < 1e-12,
+        "q0_h_amplitude_000"
+    );
+
+    require_true(
+        cabs(
+            kernel.amplitudes[4U] -
+            expected
+        ) < 1e-12,
+        "q0_h_amplitude_100"
+    );
+
+    printf(
+        "PASS: QCPU_Q0_MSB_H_MAPPING_READY\n"
+    );
+
+    require_status(
+        qcpu_kernel_reset(&kernel),
+        QCPU_OK,
+        "reset_before_msb_cx_test"
+    );
+
+    require_status(
+        qcpu_kernel_apply_x(
+            &kernel,
+            0U
+        ),
+        QCPU_OK,
+        "prepare_control_q0"
+    );
+
+    require_status(
+        qcpu_kernel_apply_cx(
+            &kernel,
+            0U,
+            2U
+        ),
+        QCPU_OK,
+        "apply_cx_q0_q2"
+    );
+
+    require_true(
+        cabs(
+            kernel.amplitudes[5U] -
+            1.0
+        ) < 1e-12,
+        "cx_q0_q2_maps_to_state_101"
+    );
+
+    require_true(
+        cabs(
+            kernel.amplitudes[4U]
+        ) < 1e-12,
+        "cx_q0_q2_clears_state_100"
+    );
+
+    printf(
+        "PASS: QCPU_Q0_MSB_CX_MAPPING_READY\n"
+    );
+
+    require_status(
         qcpu_kernel_apply_ghz(&kernel),
         QCPU_OK,
         "apply_ghz"
