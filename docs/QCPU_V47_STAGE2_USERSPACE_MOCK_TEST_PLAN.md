@@ -110,6 +110,19 @@ Assert equality of:
 Each case starts with a fresh frontend unless the case explicitly tests state
 transitions.
 
+Every case that calls `QCPU_IOC_EXCHANGE_V1` must use this fixture unless the
+case explicitly tests session failure:
+
+1. create the frontend
+2. attach the selected backend
+3. open exactly one client session
+4. perform the exchange assertions
+5. close the session
+6. destroy the quiescent frontend
+
+GET_CAPS and GET_STATUS may be tested without an open session. Transaction
+tests must not bypass the exclusive-session contract.
+
 ### B1. GET_CAPS success
 
 Verify:
@@ -155,7 +168,8 @@ backend dispatches = 0
 
 ### B5. STATUS transaction
 
-Use a valid request with command STATUS, zero qubits, zero shots.
+Use the common open-session fixture with a valid request containing command
+STATUS, zero qubits, and zero shots.
 
 Verify:
 
@@ -166,21 +180,33 @@ Verify:
 - completed counter increments once
 - state returns to IDLE
 
-### B6. RUN_GHZ zero result
+### B6. RUN_GHZ zero result and norm boundaries
 
-Use 3 qubits, 20 shots, deterministic all-zero backend.
+Use the common open-session fixture with 3 qubits, 20 shots, and the
+deterministic all-zero backend.
 
 Verify:
 
 - basis states = 8
 - measured state = 0
 - invalid results = 0
-- norm Q32.32 = `1ULL << 32`
-- completed counter increments
+- exact norm `1.0` converts to `1ULL << 32`
+- norm `1.0 + 0x1p-40` is accepted, clamped, and converts to `1ULL << 32`
+- norm `1.0 + 0x1p-40 + 0x1p-52` is rejected with `EIO`, status KERNEL,
+  failed counter +1, and state IDLE
+- exact half-LSB `0x1p-33` converts to `1`
+- one-and-a-half LSB `0x1.8p-32` converts to `2`
+- NaN, infinity, and a negative norm are rejected with `EIO`, status KERNEL
+- completed counter increments only for accepted responses
+
+Run the same exact `1.0`, tolerance-edge, outside-tolerance, and half-LSB
+conversion cases through both the deterministic STATUS backend path and the
+v4.6 STATUS/RUN_GHZ bridge conversion helper.
 
 ### B7. RUN_GHZ one result
 
-Use 3 qubits, 20 shots, deterministic all-one backend.
+Use the common open-session fixture with 3 qubits, 20 shots, and the
+deterministic all-one backend.
 
 Verify measured state = 7.
 
@@ -225,20 +251,25 @@ Expected:
 
 ### B11. Response validation
 
-Inject independently:
+Inject each failure independently using the common open-session fixture:
 
-- bad response magic
-- wrong response version
-- missing truth flag
-- qubit mismatch
-- shots mismatch
-- invalid measured state
-- nonzero invalid-results count on success
-- impossible basis-state count
-- out-of-range Q32.32 norm
+| Injected failure | errno | protocol status | final state |
+|---|---|---|---|
+| bad response magic | `EIO` | IO | IDLE |
+| wrong response version | `EIO` | IO | IDLE |
+| known non-OK response status | mapped errno | same known status | IDLE, or OFFLINE for BACKEND_ABSENT |
+| unknown response status | `EIO` | IO | IDLE |
+| missing required truth flag | `EIO` | IO | IDLE |
+| qubit mismatch | `EIO` | IO | IDLE |
+| shots mismatch | `EIO` | IO | IDLE |
+| invalid measured state | `EIO` | KERNEL | IDLE |
+| nonzero invalid-results count on success | `EIO` | KERNEL | IDLE |
+| impossible basis-state count | `EIO` | KERNEL | IDLE |
+| Q32.32 norm above `1ULL << 32` | `EIO` | KERNEL | IDLE |
 
-Expected: `EIO`, IO or KERNEL protocol status as defined by the implementation,
-failed counter increment, state recovery to IDLE or documented ERROR.
+For every row, verify that the partial response is discarded, the failed
+counter increments exactly once, completed does not increment, BUSY is
+released, and a following valid exchange succeeds without close/reopen.
 
 ### B12. Counter semantics
 
@@ -262,7 +293,8 @@ With no backend attached:
 
 ### C2. Deadline expiry
 
-Use a backend delayed beyond the absolute monotonic deadline.
+Use the common open-session fixture with a backend delayed beyond the absolute
+monotonic deadline.
 
 Verify:
 
@@ -270,27 +302,35 @@ Verify:
 - TIMEOUT status
 - failed counter increment
 - BUSY state released
-- following valid request succeeds
+- state returns directly to IDLE while the backend remains attached
+- following valid request succeeds in the same open session
 
-### C3. Timeout overflow and clamp
+### C3. Timeout boundaries and overflow
 
 Verify:
 
-- overflow attempts rejected
-- zero timeout selects the named default
-- excessive timeout is rejected or clamped exactly as documented
+- `timeout_ns == 0` selects `1000000000` ns
+- `timeout_ns == 1` is accepted
+- `timeout_ns == 5000000000` is accepted
+- `timeout_ns == 5000000001` returns `ERANGE` and RANGE before dispatch
+- over-limit values are never clamped
+- absolute-deadline addition overflow is rejected before dispatch
 - wall-clock changes do not affect monotonic deadline behavior
 
-### C4. Cancellation
+### C4. Cancellation and destroy quiescence
 
 Begin a delayed exchange, then request close/cancel.
 
 Verify:
 
-- backend cancel callback invoked at most once
+- `qcpu_mock_destroy()` during the in-flight callback returns `EBUSY`
+- the failed destroy attempt frees no frontend or backend-owned memory
+- backend cancel callback is invoked at most once
 - waiting operation returns `ECANCELED`
+- BUSY is released before close completes
 - active session reaches zero
 - frontend can reopen
+- destroy succeeds only after the session is closed and no callback is running
 - no thread remains blocked
 
 ### C5. Backend disconnect
@@ -300,11 +340,12 @@ Simulate backend death while a request is pending.
 Verify:
 
 - client wakes
-- request returns deterministic I/O error
+- request returns `ENODEV` and BACKEND_ABSENT
+- failed counter increments exactly once
 - partial response is discarded
-- state does not remain BUSY
-- backend may be reattached
-- later STATUS succeeds
+- state moves from BUSY to OFFLINE
+- backend may be reattached, moving OFFLINE to IDLE
+- later STATUS succeeds in the same open session
 
 ### C6. Repeated session lifecycle
 
@@ -318,17 +359,19 @@ Verify:
 - no temporary lock remains
 - counters match expected values
 
-### C7. Cross-process exclusive lock
+### C7. Mandatory cross-process exclusive lock
 
-Using a unique `0700` temporary directory:
+Using a unique mode `0700` temporary directory and mode `0600` lock file:
 
-- process A acquires the mock session
+- process A acquires the mock session with a nonblocking advisory lock
 - process B receives `EBUSY`
+- no process-local exclusivity fallback is used
 - terminate A cleanly
 - process B can then acquire the session
-- runtime directory is removed
+- close releases the lock
+- the lock file and runtime directory are removed
 
-No global lock path is permitted.
+No global or persistent lock path is permitted.
 
 ## Layer D: v4.6 qcpud integration
 
@@ -346,7 +389,8 @@ Run only after Layers A-C pass.
 
 ### D2. STATUS bridge
 
-Submit Stage 2 STATUS through the v4.6 adapter.
+Submit Stage 2 STATUS through the v4.6 adapter using the common open-session
+fixture.
 
 Verify:
 
@@ -354,11 +398,12 @@ Verify:
 - canonical 56-byte v4.6 response
 - explicit little-endian wire handling
 - truth flags preserved
-- userspace norm converted to Q32.32
+- exact `1.0`, tolerance-edge, outside-tolerance, and half-LSB norm cases use
+  the same deterministic Q32.32 conversion contract as Layer B
 
 ### D3. RUN_GHZ bridge
 
-Submit 3 qubits and 20 shots.
+Submit 3 qubits and 20 shots using the common open-session fixture.
 
 Verify:
 

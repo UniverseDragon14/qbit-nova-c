@@ -90,7 +90,7 @@ int qcpu_mock_ioctl(
     void *argument
 );
 int qcpu_mock_close(struct qcpu_mock *mock);
-void qcpu_mock_destroy(struct qcpu_mock *mock);
+int qcpu_mock_destroy(struct qcpu_mock *mock);
 ```
 
 This is not a transported ABI and is not added to the Stage 1 UAPI header.
@@ -145,19 +145,28 @@ export, gate batching, noise configuration, or arbitrary-circuit command.
 
 ## Session model
 
-Stage 2 emulates one exclusive client session.
+Stage 2 enforces one exclusive client session across all participating
+processes, not merely within one address space.
 
 - first open succeeds
-- second open returns `-EBUSY`
+- second open in the same process returns `-EBUSY`
+- second open from another process returns `-EBUSY`
 - close releases the session
 - repeated open/close leaves zero active sessions
-- destroy with an active session must fail closed or perform documented cleanup
 - one request may be in flight
 - a second exchange while busy returns `-EBUSY`
+- `qcpu_mock_destroy()` returns `-EBUSY` while a session is active or an
+  exchange callback is in flight
+- a failed destroy attempt frees no frontend or backend-owned memory
+- destroy succeeds only after the session is closed and the frontend is
+  quiescent
 
-For cross-process tests, the mock may use a lock file inside a unique temporary
-runtime directory with mode `0700`. It must not create a global lock, system
-group, device node, or persistent runtime path.
+Cross-process exclusivity is mandatory. The mock uses a nonblocking advisory
+lock on a mode `0600` lock file inside a unique mode `0700` temporary runtime
+directory supplied by the test fixture. There is no process-local fallback.
+The lock is released on close and is recoverable after normal process exit.
+The implementation must not create a global lock, system group, device node,
+or persistent runtime path.
 
 ## State machine
 
@@ -169,17 +178,21 @@ IDLE
   | valid exchange begins
   v
 BUSY
-  | success
+  | success, timeout, cancellation, or recoverable backend error
   v
 IDLE
 
-BUSY -- timeout/cancel/backend failure --> ERROR
-ERROR -- explicit recovery/reopen ------> IDLE
-IDLE  -- backend detached --------------> OFFLINE
+BUSY -- backend disconnect ------------------------------> OFFLINE
+IDLE -- backend detached --------------------------------> OFFLINE
+IDLE/BUSY -- internal invariant or teardown failure -----> ERROR
+ERROR -- destroy and recreate frontend ------------------> IDLE or OFFLINE
 ```
 
-The test implementation must define each transition and assert that no failure
-leaves the frontend permanently busy.
+Timeout, cancellation, malformed backend response, and recoverable engine or
+transport failure record the error, increment the failed counter after
+dispatch, release BUSY, and return to IDLE when the backend remains attached.
+A backend disconnect returns the frontend to OFFLINE. ERROR is reserved for an
+internal invariant or teardown failure and is not a normal request result.
 
 ## Validation order
 
@@ -191,14 +204,33 @@ leaves the frontend permanently busy.
 4. protocol version
 5. supported command
 6. qubit and shot range
-7. timeout conversion and clamp
+7. timeout conversion and maximum check
 8. frontend is not busy
 9. backend is available
 10. dispatch
-11. response magic, version, status, limits, and truth flags
+11. response validation in the fixed order below
 12. update counters and state
 
-Validation order is deterministic so tests can assert the first returned error.
+Response validation order and outcomes are deterministic:
+
+| Response check | Failure result |
+|---|---|
+| response magic | `-EIO`, status IO, failed counter +1, IDLE |
+| response version | `-EIO`, status IO, failed counter +1, IDLE |
+| known non-OK response status | mapped errno/status, failed counter +1, IDLE or OFFLINE for BACKEND_ABSENT |
+| unknown response status | `-EIO`, status IO, failed counter +1, IDLE |
+| required truth flags present | `-EIO`, status IO, failed counter +1, IDLE |
+| response qubits equal request | `-EIO`, status IO, failed counter +1, IDLE |
+| response shots equal request | `-EIO`, status IO, failed counter +1, IDLE |
+| `basis_states == 1ULL << qubits` for RUN_GHZ | `-EIO`, status KERNEL, failed counter +1, IDLE |
+| measured state is all-zero or all-one | `-EIO`, status KERNEL, failed counter +1, IDLE |
+| `invalid_results == 0` on success | `-EIO`, status KERNEL, failed counter +1, IDLE |
+| `norm_q32_32 <= 1ULL << 32` | `-EIO`, status KERNEL, failed counter +1, IDLE |
+
+The partial backend response is discarded on every failure. Pre-dispatch
+validation rejects increment neither execution counter. A backend disconnect
+uses `-ENODEV`, status BACKEND_ABSENT, increments the failed counter, and moves
+the frontend to OFFLINE.
 
 ## Command rules
 
@@ -226,13 +258,20 @@ Conversion occurs only in userspace.
 
 Normative Stage 2 rules:
 
+- `QCPU_MOCK_NORM_TOLERANCE` is exactly `0x1p-40` (`2^-40`)
 - reject NaN and infinity
 - reject values below `0.0`
-- reject values above `1.0` except a documented tiny numerical tolerance
-- clamp an accepted tolerance overshoot to `1.0`
-- convert using round-to-nearest into unsigned Q32.32
+- accept values through `1.0 + QCPU_MOCK_NORM_TOLERANCE`
+- reject any value above that inclusive boundary
+- clamp an accepted overshoot above `1.0` to exactly `1.0`
+- scale the clamped value by `2^32`
+- round to nearest with exact half-LSB ties rounded upward
+- the implementation must not depend on the process floating-point rounding
+  mode
 - `0.0` becomes `0`
+- exact half-LSB `0x1p-33` becomes `1`
 - `1.0` becomes `1ULL << 32`
+- `1.0 + 0x1p-40` becomes `1ULL << 32`
 
 The kernel-facing UAPI continues to contain only `__u64 norm_q32_32`.
 
@@ -240,16 +279,23 @@ The kernel-facing UAPI continues to contain only `__u64 norm_q32_32`.
 
 Stage 2 uses absolute `CLOCK_MONOTONIC` deadlines.
 
-- `timeout_ns == 0` selects a safe implementation default
-- nonzero timeout is checked for overflow
-- timeout is clamped to a documented Stage 2 maximum
+```text
+QCPU_MOCK_DEFAULT_TIMEOUT_NS = 1000000000
+QCPU_MOCK_MAX_TIMEOUT_NS     = 5000000000
+```
+
+- `timeout_ns == 0` selects the 1-second default
+- `1 <= timeout_ns <= QCPU_MOCK_MAX_TIMEOUT_NS` is accepted
+- a value above the 5-second maximum returns `-ERANGE` and status RANGE before
+  backend dispatch; it is never clamped
+- deadline addition is checked for integer overflow before dispatch
 - timeout returns `-ETIMEDOUT` and protocol status TIMEOUT
+- timeout increments the failed counter, releases BUSY, and returns to IDLE
+  while the backend remains attached
 - close during an exchange requests cancellation
 - cancellation returns `-ECANCELED` and protocol status CANCELED
-- timeout or cancellation must release BUSY state
-
-Default and maximum timeout constants are implementation details, not ABI
-values. They must be named, tested, and documented in the future Stage 2 code.
+- cancellation releases BUSY; close then releases the session
+- a timeout or cancellation never requires an implicit reopen
 
 ## Error and status mapping
 
@@ -265,7 +311,7 @@ The mock follows the Stage 1 threat-model map:
 | range failure | `ERANGE` | RANGE |
 | malformed input | `EINVAL` | RANGE |
 | backend absent | `ENODEV` | BACKEND_ABSENT |
-| session/request busy | `EBUSY` | BUSY |
+| session/request busy or non-quiescent destroy | `EBUSY` | BUSY |
 | deadline expired | `ETIMEDOUT` | TIMEOUT |
 | canceled | `ECANCELED` | CANCELED |
 | backend engine failure | `EIO` | KERNEL |
