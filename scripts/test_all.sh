@@ -226,4 +226,14 @@ echo "=== TEST QCPU CORRECTNESS REGRESSIONS ==="
 bash tests/test_qcpu_correctness.sh
 
 echo
+
+echo
+echo "=== TEST QCPU EXPANSION-COLLAPSE KERNEL ==="
+chmod +x scripts/proof_expansion_collapse.sh
+./scripts/proof_expansion_collapse.sh
+
+grep -F \
+  "PASS: QCPU_EXPANSION_COLLAPSE_KERNEL_READY" \
+  build/qcpu_expansion_collapse_kernel.md \
+  .qcpu/expansion_collapse_kernel.env
 echo "ALL QBIT NOVA TESTS PASSED"

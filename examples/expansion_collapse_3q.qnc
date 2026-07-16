@@ -1,0 +1,6 @@
+# QBIT NOVA C v4.5
+# Compact input -> 2^N state expansion -> measured basis result
+
+qubits 3
+ghz
+measure
