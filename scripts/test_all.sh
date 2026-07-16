@@ -236,4 +236,12 @@ grep -F \
   "PASS: QCPU_EXPANSION_COLLAPSE_KERNEL_READY" \
   build/qcpu_expansion_collapse_kernel.md \
   .qcpu/expansion_collapse_kernel.env
+echo
+echo "=== TEST QCPU V4.6 DEVICE PROTOCOL ==="
+./scripts/test_qcpu_device_protocol.sh
+
+echo
+echo "=== TEST QCPU V4.6 UNIX SOCKET DEVICE ==="
+./scripts/test_qcpu_device_socket.sh
+
 echo "ALL QBIT NOVA TESTS PASSED"

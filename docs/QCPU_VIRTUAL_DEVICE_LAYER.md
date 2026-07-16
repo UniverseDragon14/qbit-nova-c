@@ -69,3 +69,31 @@ The Pico controller is not required for the v4.6 software layer.
 
 Pico integration will begin only after its exact model, cable,
 power source, and available modules have been visually verified.
+
+## Stage 3B Unix socket device
+
+The first executable device boundary uses an owner-only Unix
+domain socket and does not expose a TCP or UDP listener.
+
+Components:
+
+- `qcpud`: local C device daemon
+- `qnova-device`: local C device client
+- explicit little-endian request and response encoding
+- fixed 24-byte request packet
+- fixed 56-byte response packet
+- malformed magic and protocol-version rejection
+- STATUS and RUN_GHZ commands
+- owner-only socket mode `0600`
+- one request per test daemon instance
+
+Example:
+
+    qcpud --socket /tmp/qbit-nova/qcpu.sock
+    qnova-device --socket /tmp/qbit-nova/qcpu.sock status
+    qnova-device --socket /tmp/qbit-nova/qcpu.sock run-ghz 3 20 424242
+
+The daemon runs the statevector kernel on the classical host CPU.
+
+The socket is not a physical QPU and the Pico is not connected
+during this stage.
