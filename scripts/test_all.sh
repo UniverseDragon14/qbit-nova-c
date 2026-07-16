@@ -47,8 +47,8 @@ gcc src/tools/qasm_export.c \
 
 echo
 echo "=== TEST OpenQASM export ==="
-./qnova-qasm examples/bell_qasm.qn > $QBIT_QASM_OUT
-grep -E 'OPENQASM 3.0|include "stdgates.inc"|qubit\[2\] q|bit\[2\] c|h q\[0\]|cx q\[0\], q\[1\]|c\[0\] = measure q\[0\]|c\[1\] = measure q\[1\]' $QBIT_QASM_OUT
+./qnova-qasm examples/bell_qasm.qn > "$QBIT_QASM_OUT"
+grep -E 'OPENQASM 3.0|include "stdgates.inc"|qubit\[2\] q|bit\[2\] c|h q\[0\]|cx q\[0\], q\[1\]|c\[0\] = measure q\[0\]|c\[1\] = measure q\[1\]' "$QBIT_QASM_OUT"
 
 echo
 echo "=== TEST BELL PROOF SCRIPT ==="
@@ -69,9 +69,9 @@ grep -E 'QBIT_NOVA_VIRTUAL_QCPU|software virtual QCPU' build/qcpu_node.json
 
 echo
 echo "=== TEST NOVA HYPERCUBE RUNTIME ==="
-./scripts/hypercube_status.sh > $QBIT_TMP_DIR/qbit_nova_hypercube_status.log
-cat $QBIT_TMP_DIR/qbit_nova_hypercube_status.log
-grep -E 'NOVA HYPERCUBE RUNTIME READY' $QBIT_TMP_DIR/qbit_nova_hypercube_status.log
+./scripts/hypercube_status.sh > "$QBIT_TMP_DIR/qbit_nova_hypercube_status.log"
+cat "$QBIT_TMP_DIR/qbit_nova_hypercube_status.log"
+grep -E 'NOVA HYPERCUBE RUNTIME READY' "$QBIT_TMP_DIR/qbit_nova_hypercube_status.log"
 
 echo
 echo "=== TEST NOVA HYPERCUBE SNAPSHOT ==="
@@ -178,7 +178,6 @@ chmod +x scripts/qcpu_ci_evidence.sh
 grep -R "QCPU CI EVIDENCE REPORTER READY" build/qcpu_ci_evidence.md .qcpu/ci_evidence.env
 
 echo
-echo
 echo "=== TEST QCPU PUBLIC DEMO RUNTIME ==="
 chmod +x scripts/qcpu_public_demo.sh
 ./scripts/qcpu_public_demo.sh
@@ -192,23 +191,19 @@ chmod +x scripts/qnova_demo.sh
 grep -F "QNOVA PUBLIC DEMO CLI READY" build/qnova_public_demo_cli.md .qcpu/qnova_demo.env
 grep -F "PASS: QNOVA_PUBLIC_DEMO_CLI_READY" build/qnova_public_demo_cli.md .qcpu/qnova_demo.env
 
-
 echo
 echo "=== QNOVA PUBLIC INSTALL CHECK ==="
 
 bash -n install.sh
 
-./install.sh --dry-run > $QBIT_TMP_DIR/qnova_install_dryrun.txt
-cat $QBIT_TMP_DIR/qnova_install_dryrun.txt
+./install.sh --dry-run > "$QBIT_TMP_DIR/qnova_install_dryrun.txt"
+cat "$QBIT_TMP_DIR/qnova_install_dryrun.txt"
 
-grep -F "PASS: QNOVA_INSTALL_DRY_RUN_READY" $QBIT_TMP_DIR/qnova_install_dryrun.txt
-grep -F "QNOVA PUBLIC INSTALL SCRIPT READY" $QBIT_TMP_DIR/qnova_install_dryrun.txt
+grep -F "PASS: QNOVA_INSTALL_DRY_RUN_READY" "$QBIT_TMP_DIR/qnova_install_dryrun.txt"
+grep -F "QNOVA PUBLIC INSTALL SCRIPT READY" "$QBIT_TMP_DIR/qnova_install_dryrun.txt"
+grep -F "PASS: QNOVA_PUBLIC_INSTALL_READY" "$QBIT_TMP_DIR/qnova_install_dryrun.txt"
 grep -F "PASS: QNOVA_PUBLIC_INSTALL_READY" docs/QNOVA_PUBLIC_INSTALL.md
 grep -F "QNOVA Public Install Script" README.md
-
-echo "PASS: QNOVA_PUBLIC_INSTALL_READY"
-
-echo "ALL QBIT NOVA TESTS PASSED"
 
 echo
 echo "=== TEST QCPU BELL SHOTS REPORTER ==="
@@ -227,6 +222,12 @@ echo "=== TEST QCPU CIRCUIT VM ==="
 ./scripts/proof_qcircuit.sh
 
 echo
+echo "=== TEST QCPU CORRECTNESS REGRESSIONS ==="
+bash tests/test_qcpu_correctness.sh
+
+echo
+
+echo
 echo "=== TEST QCPU EXPANSION-COLLAPSE KERNEL ==="
 chmod +x scripts/proof_expansion_collapse.sh
 ./scripts/proof_expansion_collapse.sh
@@ -235,3 +236,4 @@ grep -F \
   "PASS: QCPU_EXPANSION_COLLAPSE_KERNEL_READY" \
   build/qcpu_expansion_collapse_kernel.md \
   .qcpu/expansion_collapse_kernel.env
+echo "ALL QBIT NOVA TESTS PASSED"
