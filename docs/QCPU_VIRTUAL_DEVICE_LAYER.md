@@ -97,3 +97,33 @@ The daemon runs the statevector kernel on the classical host CPU.
 
 The socket is not a physical QPU and the Pico is not connected
 during this stage.
+
+## Stage 3C session-persistent lifecycle
+
+Stage 3C keeps `qcpud` alive for multiple requests within the
+owner's user session. It is not configured to start at boot and
+it does not install a systemd service.
+
+Lifecycle commands:
+
+    ./scripts/qcpu_device_lifecycle.sh start
+    ./scripts/qcpu_device_lifecycle.sh status
+    ./scripts/qcpu_device_lifecycle.sh run-ghz 3 20 424242
+    ./scripts/qcpu_device_lifecycle.sh stop
+
+Safety properties:
+
+- owner-controlled runtime directory mode `0700`
+- owner-only socket mode `0600`
+- owner-only PID and log files
+- PID ownership and command-line identity validation
+- graceful `SIGTERM` shutdown
+- no automatic `SIGKILL`
+- no TCP or UDP listener
+- no root or system service installation
+- no Pico or GPIO activity
+
+The Huawei proof confirms that commands arrived through an SSH
+session and executed on a Raspberry Pi 5 host. The client device
+label is user-attested because the Pi cannot cryptographically
+identify the phone model from a normal SSH connection.

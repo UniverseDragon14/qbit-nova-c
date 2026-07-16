@@ -244,4 +244,8 @@ echo
 echo "=== TEST QCPU V4.6 UNIX SOCKET DEVICE ==="
 ./scripts/test_qcpu_device_socket.sh
 
+echo
+echo "=== TEST QCPU V4.6 SESSION DAEMON LIFECYCLE ==="
+./scripts/test_qcpu_device_lifecycle.sh
+
 echo "ALL QBIT NOVA TESTS PASSED"

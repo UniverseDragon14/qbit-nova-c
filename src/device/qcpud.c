@@ -16,6 +16,54 @@
 #include <sys/un.h>
 #include <unistd.h>
 
+static volatile sig_atomic_t stop_requested = 0;
+static int server_fd_for_signal = -1;
+
+static void handle_stop_signal(int signal_number) {
+    int file_descriptor;
+
+    (void)signal_number;
+    stop_requested = 1;
+    file_descriptor = server_fd_for_signal;
+
+    if (file_descriptor >= 0) {
+        (void)close(file_descriptor);
+    }
+}
+
+static int install_signal_handlers(void) {
+    struct sigaction stop_action;
+    struct sigaction pipe_action;
+
+    memset(&stop_action, 0, sizeof(stop_action));
+    stop_action.sa_handler = handle_stop_signal;
+
+    if (sigemptyset(&stop_action.sa_mask) != 0) {
+        return -1;
+    }
+
+    if (sigaction(SIGINT, &stop_action, NULL) != 0) {
+        return -1;
+    }
+
+    if (sigaction(SIGTERM, &stop_action, NULL) != 0) {
+        return -1;
+    }
+
+    memset(&pipe_action, 0, sizeof(pipe_action));
+    pipe_action.sa_handler = SIG_IGN;
+
+    if (sigemptyset(&pipe_action.sa_mask) != 0) {
+        return -1;
+    }
+
+    if (sigaction(SIGPIPE, &pipe_action, NULL) != 0) {
+        return -1;
+    }
+
+    return 0;
+}
+
 static uint32_t device_flags(void) {
     return
         QCPU_DEVICE_FLAG_SOFTWARE_VIRTUAL_QCPU |
@@ -335,7 +383,11 @@ int main(int argc, char **argv) {
     }
 
     umask(0077);
-    signal(SIGPIPE, SIG_IGN);
+
+    if (install_signal_handlers() != 0) {
+        perror("sigaction");
+        return EXIT_FAILURE;
+    }
 
     if (prepare_socket_path(socket_path) != 0) {
         return EXIT_FAILURE;
@@ -383,6 +435,8 @@ int main(int argc, char **argv) {
         return EXIT_FAILURE;
     }
 
+    server_fd_for_signal = server_fd;
+
     printf("PASS: QCPUD_SOCKET_READY path=%s\n", socket_path);
     printf(
         "DEVICE=qcpu0 TYPE=SOFTWARE_VIRTUAL_QCPU "
@@ -395,11 +449,16 @@ int main(int argc, char **argv) {
         int result;
 
         if (client_fd < 0) {
+            if (stop_requested != 0) {
+                break;
+            }
+
             if (errno == EINTR) {
                 continue;
             }
 
             perror("accept");
+            server_fd_for_signal = -1;
             close(server_fd);
             unlink(socket_path);
             return EXIT_FAILURE;
@@ -419,7 +478,13 @@ int main(int argc, char **argv) {
         }
     }
 
-    close(server_fd);
+    server_fd_for_signal = -1;
+
+    if (close(server_fd) != 0 && errno != EBADF) {
+        perror("close server socket");
+        unlink(socket_path);
+        return EXIT_FAILURE;
+    }
 
     if (unlink(socket_path) != 0) {
         perror("unlink socket");
