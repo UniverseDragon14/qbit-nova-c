@@ -225,3 +225,13 @@ echo "=== TEST QCPU GHZ STATE-N PROOF ==="
 echo
 echo "=== TEST QCPU CIRCUIT VM ==="
 ./scripts/proof_qcircuit.sh
+
+echo
+echo "=== TEST QCPU EXPANSION-COLLAPSE KERNEL ==="
+chmod +x scripts/proof_expansion_collapse.sh
+./scripts/proof_expansion_collapse.sh
+
+grep -F \
+  "PASS: QCPU_EXPANSION_COLLAPSE_KERNEL_READY" \
+  build/qcpu_expansion_collapse_kernel.md \
+  .qcpu/expansion_collapse_kernel.env
