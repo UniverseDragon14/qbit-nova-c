@@ -14,7 +14,9 @@ RUNTIME_DIR="${QCPU_RUNTIME_DIR:-${XDG_RUNTIME_DIR:-$HOME/.local/run}/qbit-nova}
 SOCKET_PATH="$RUNTIME_DIR/qcpu.sock"
 PID_FILE="$RUNTIME_DIR/qcpud.pid"
 LOG_FILE="$RUNTIME_DIR/qcpud.log"
+LOCK_FILE="$RUNTIME_DIR/qcpud.lifecycle.lock"
 QCPUD_BIN="$BUILD_DIR/qcpud"
+LIFECYCLE_SCRIPT="$ROOT/scripts/qcpu_device_lifecycle.sh"
 CLIENT_BIN="$BUILD_DIR/qnova-device"
 
 fail() {
@@ -43,12 +45,12 @@ safe_runtime_dir() {
 safe_existing_file() {
   local path="$1"
 
-  if [ ! -e "$path" ]; then
-    return 0
-  fi
-
   if [ -L "$path" ]; then
     fail "UNSAFE_SYMLINK:$path"
+  fi
+
+  if [ ! -e "$path" ]; then
+    return 0
   fi
 
   if [ ! -f "$path" ]; then
@@ -61,6 +63,10 @@ safe_existing_file() {
 }
 
 safe_existing_socket() {
+  if [ -L "$SOCKET_PATH" ]; then
+    fail "UNSAFE_SYMLINK:$SOCKET_PATH"
+  fi
+
   if [ ! -e "$SOCKET_PATH" ]; then
     return 0
   fi
@@ -72,6 +78,20 @@ safe_existing_socket() {
   if [ "$(stat -c '%u' "$SOCKET_PATH")" != "$(id -u)" ]; then
     fail "UNSAFE_SOCKET_OWNER"
   fi
+}
+
+with_lifecycle_lock() {
+  safe_runtime_dir
+  safe_existing_file "$LOCK_FILE"
+
+  if [ "${QCPU_LIFECYCLE_LOCK_HELD:-0}" = "1" ]; then
+    return 0
+  fi
+
+  : >> "$LOCK_FILE"
+  chmod 600 "$LOCK_FILE"
+
+  exec flock -o -w 15 "$LOCK_FILE"     env QCPU_LIFECYCLE_LOCK_HELD=1     "$LIFECYCLE_SCRIPT" "$@"
 }
 
 build_device() {
@@ -93,6 +113,7 @@ build_device() {
     gcc \
       "${cflags[@]}" \
       src/device/qcpu_device_wire.c \
+      src/device/qcpu_device_io.c \
       src/quantum/qcpu_kernel.c \
       src/device/qcpud.c \
       -lm \
@@ -101,6 +122,7 @@ build_device() {
     gcc \
       "${cflags[@]}" \
       src/device/qcpu_device_wire.c \
+      src/device/qcpu_device_io.c \
       src/tools/qnova_device_client.c \
       -o "$CLIENT_BIN"
   )
@@ -111,7 +133,8 @@ build_device() {
 }
 
 read_pid() {
-  local pid
+  local output_name="$1"
+  local raw_pid
 
   safe_existing_file "$PID_FILE"
 
@@ -119,13 +142,30 @@ read_pid() {
     return 1
   fi
 
-  pid="$(cat "$PID_FILE")"
-
-  if ! [[ "$pid" =~ ^[0-9]+$ ]] || [ "$pid" -le 1 ]; then
-    fail "INVALID_PID_FILE"
+  if ! IFS= read -r raw_pid < "$PID_FILE"; then
+    return 2
   fi
 
-  printf '%s\n' "$pid"
+  if ! [[ "$raw_pid" =~ ^[0-9]+$ ]] || [ "$raw_pid" -le 1 ]; then
+    return 2
+  fi
+
+  printf -v "$output_name" '%s' "$raw_pid"
+}
+
+process_is_zombie() {
+  local pid="$1"
+  local process_state
+
+  if [ ! -r "/proc/$pid/stat" ]; then
+    return 1
+  fi
+
+  process_state="$(
+    awk '{print $3}' "/proc/$pid/stat" 2>/dev/null || true
+  )"
+
+  [ "$process_state" = "Z" ]
 }
 
 process_matches_qcpud() {
@@ -134,6 +174,10 @@ process_matches_qcpud() {
   local -a command_parts=()
 
   if ! kill -0 "$pid" 2>/dev/null; then
+    return 1
+  fi
+
+  if process_is_zombie "$pid"; then
     return 1
   fi
 
@@ -171,14 +215,27 @@ process_matches_qcpud() {
 }
 
 require_running_pid() {
-  local pid
+  local output_name="$1"
+  local parsed_pid
+  local read_status
 
-  if ! pid="$(read_pid)"; then
-    fail "QCPUD_NOT_RUNNING"
+  if read_pid parsed_pid; then
+    :
+  else
+    read_status=$?
+
+    if [ "$read_status" -eq 1 ]; then
+      fail "QCPUD_NOT_RUNNING"
+    fi
+
+    fail "INVALID_PID_FILE"
   fi
 
-  if ! process_matches_qcpud "$pid"; then
-    if kill -0 "$pid" 2>/dev/null; then
+  if ! process_matches_qcpud "$parsed_pid"; then
+    if (
+      kill -0 "$parsed_pid" 2>/dev/null &&
+      ! process_is_zombie "$parsed_pid"
+    ); then
       fail "PID_IDENTITY_MISMATCH"
     fi
 
@@ -190,18 +247,19 @@ require_running_pid() {
     fail "QCPUD_SOCKET_MISSING"
   fi
 
-  printf '%s\n' "$pid"
+  printf -v "$output_name" '%s' "$parsed_pid"
 }
 
 start_daemon() {
   local pid temp_pid_file socket_mode
+  local read_status
 
   safe_runtime_dir
   safe_existing_file "$PID_FILE"
   safe_existing_file "$LOG_FILE"
   safe_existing_socket
 
-  if pid="$(read_pid 2>/dev/null)"; then
+  if read_pid pid; then
     if process_matches_qcpud "$pid"; then
       echo "STATUS=PASS"
       echo "ACTION=START"
@@ -211,11 +269,20 @@ start_daemon() {
       return 0
     fi
 
-    if kill -0 "$pid" 2>/dev/null; then
+    if (
+      kill -0 "$pid" 2>/dev/null &&
+      ! process_is_zombie "$pid"
+    ); then
       fail "PID_IDENTITY_MISMATCH"
     fi
 
     rm -f "$PID_FILE"
+  else
+    read_status=$?
+
+    if [ "$read_status" -eq 2 ]; then
+      fail "INVALID_PID_FILE"
+    fi
   fi
 
   if [ -e "$SOCKET_PATH" ]; then
@@ -236,7 +303,11 @@ start_daemon() {
   pid=$!
 
   for ((attempt = 0; attempt < 200; ++attempt)); do
-    if [ -S "$SOCKET_PATH" ] && kill -0 "$pid" 2>/dev/null; then
+    if (
+      [ -S "$SOCKET_PATH" ] &&
+      grep -Fq "PASS: QCPUD_SOCKET_READY" "$LOG_FILE" &&
+      kill -0 "$pid" 2>/dev/null
+    ); then
       break
     fi
 
@@ -248,7 +319,10 @@ start_daemon() {
     sleep 0.05
   done
 
-  if [ ! -S "$SOCKET_PATH" ]; then
+  if (
+    [ ! -S "$SOCKET_PATH" ] ||
+    ! grep -Fq "PASS: QCPUD_SOCKET_READY" "$LOG_FILE"
+  ); then
     kill -TERM "$pid" 2>/dev/null || true
     wait "$pid" 2>/dev/null || true
     fail "QCPUD_SOCKET_READY_TIMEOUT"
@@ -287,7 +361,7 @@ status_daemon() {
   local pid output
 
   safe_runtime_dir
-  pid="$(require_running_pid)"
+  require_running_pid pid
 
   output="$(
     timeout 10 \
@@ -310,7 +384,7 @@ run_ghz() {
   local pid
 
   safe_runtime_dir
-  pid="$(require_running_pid)"
+  require_running_pid pid
 
   timeout 30 \
     "$CLIENT_BIN" \
@@ -327,10 +401,19 @@ run_ghz() {
 
 stop_daemon() {
   local pid stopped=0
+  local read_status
 
   safe_runtime_dir
 
-  if ! pid="$(read_pid)"; then
+  if read_pid pid; then
+    :
+  else
+    read_status=$?
+
+    if [ "$read_status" -eq 2 ]; then
+      fail "INVALID_PID_FILE"
+    fi
+
     safe_existing_socket
 
     if [ -e "$SOCKET_PATH" ]; then
@@ -344,7 +427,10 @@ stop_daemon() {
   fi
 
   if ! process_matches_qcpud "$pid"; then
-    if kill -0 "$pid" 2>/dev/null; then
+    if (
+      kill -0 "$pid" 2>/dev/null &&
+      ! process_is_zombie "$pid"
+    ); then
       fail "PID_IDENTITY_MISMATCH"
     fi
 
@@ -364,7 +450,10 @@ stop_daemon() {
   kill -TERM "$pid"
 
   for ((attempt = 0; attempt < 100; ++attempt)); do
-    if ! kill -0 "$pid" 2>/dev/null; then
+    if (
+      ! kill -0 "$pid" 2>/dev/null ||
+      process_is_zombie "$pid"
+    ); then
       stopped=1
       break
     fi
@@ -403,6 +492,7 @@ show_paths() {
   echo "SOCKET=$SOCKET_PATH"
   echo "PID_FILE=$PID_FILE"
   echo "LOG_FILE=$LOG_FILE"
+  echo "LOCK_FILE=$LOCK_FILE"
 }
 
 usage() {
@@ -422,11 +512,13 @@ command="${1:-}"
 case "$command" in
   build)
     [ "$#" -eq 1 ] || fail "INVALID_BUILD_ARGUMENTS"
+    with_lifecycle_lock "$@"
     build_device
     ;;
 
   start)
     [ "$#" -eq 1 ] || fail "INVALID_START_ARGUMENTS"
+    with_lifecycle_lock "$@"
     start_daemon
     ;;
 
@@ -442,6 +534,7 @@ case "$command" in
 
   stop)
     [ "$#" -eq 1 ] || fail "INVALID_STOP_ARGUMENTS"
+    with_lifecycle_lock "$@"
     stop_daemon
     ;;
 

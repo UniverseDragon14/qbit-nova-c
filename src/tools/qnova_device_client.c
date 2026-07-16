@@ -1,4 +1,5 @@
 #include "../device/qcpu_device_wire.h"
+#include "../device/qcpu_device_io.h"
 
 #include <ctype.h>
 #include <errno.h>
@@ -44,110 +45,6 @@ static uint64_t parse_unsigned(
     }
 
     return (uint64_t)value;
-}
-
-static int read_all(
-    int file_descriptor,
-    uint8_t *buffer,
-    size_t size
-) {
-    size_t completed = 0U;
-
-    while (completed < size) {
-        ssize_t result = read(
-            file_descriptor,
-            buffer + completed,
-            size - completed
-        );
-
-        if (result == 0) {
-            return -1;
-        }
-
-        if (result < 0) {
-            if (errno == EINTR) {
-                continue;
-            }
-
-            return -1;
-        }
-
-        completed += (size_t)result;
-    }
-
-    return 0;
-}
-
-static int write_all(
-    int file_descriptor,
-    const uint8_t *buffer,
-    size_t size
-) {
-    size_t completed = 0U;
-
-    while (completed < size) {
-        ssize_t result = write(
-            file_descriptor,
-            buffer + completed,
-            size - completed
-        );
-
-        if (result == 0) {
-            return -1;
-        }
-
-        if (result < 0) {
-            if (errno == EINTR) {
-                continue;
-            }
-
-            return -1;
-        }
-
-        completed += (size_t)result;
-    }
-
-    return 0;
-}
-
-static int connect_socket(const char *socket_path) {
-    int file_descriptor;
-    struct sockaddr_un address;
-
-    if (strlen(socket_path) >= sizeof(address.sun_path)) {
-        fprintf(stderr, "ERROR: socket path too long\n");
-        return -1;
-    }
-
-    file_descriptor = socket(AF_UNIX, SOCK_STREAM, 0);
-
-    if (file_descriptor < 0) {
-        perror("socket");
-        return -1;
-    }
-
-    memset(&address, 0, sizeof(address));
-    address.sun_family = AF_UNIX;
-
-    memcpy(
-        address.sun_path,
-        socket_path,
-        strlen(socket_path) + 1U
-    );
-
-    if (
-        connect(
-            file_descriptor,
-            (struct sockaddr *)&address,
-            sizeof(address)
-        ) != 0
-    ) {
-        perror("connect");
-        close(file_descriptor);
-        return -1;
-    }
-
-    return file_descriptor;
 }
 
 static void print_response(const QCPUDeviceResponse *response) {
@@ -212,6 +109,7 @@ int main(int argc, char **argv) {
     uint8_t request_wire[QCPU_DEVICE_REQUEST_WIRE_SIZE];
     uint8_t response_wire[QCPU_DEVICE_RESPONSE_WIRE_SIZE];
     int file_descriptor;
+    QCPUDeviceIOStatus io_status;
 
     if (argc < 4 || strcmp(argv[1], "--socket") != 0) {
         fprintf(
@@ -274,20 +172,38 @@ int main(int argc, char **argv) {
         return EXIT_FAILURE;
     }
 
-    file_descriptor = connect_socket(socket_path);
+    file_descriptor = qcpu_device_connect_unix(
+        socket_path,
+        QCPU_DEVICE_IO_TIMEOUT_MS
+    );
 
     if (file_descriptor < 0) {
+        if (file_descriptor == QCPU_DEVICE_IO_TIMEOUT) {
+            fprintf(stderr, "ERROR: connection timeout\n");
+        } else {
+            perror("connect");
+        }
+
         return EXIT_FAILURE;
     }
 
-    if (
-        write_all(
-            file_descriptor,
-            request_wire,
-            sizeof(request_wire)
-        ) != 0
-    ) {
-        fprintf(stderr, "ERROR: request write failed\n");
+    io_status = qcpu_device_write_all(
+        file_descriptor,
+        request_wire,
+        sizeof(request_wire),
+        QCPU_DEVICE_IO_TIMEOUT_MS,
+        NULL
+    );
+
+    if (io_status != QCPU_DEVICE_IO_OK) {
+        fprintf(
+            stderr,
+            "%s\n",
+            io_status == QCPU_DEVICE_IO_TIMEOUT
+                ? "ERROR: request write timeout"
+                : "ERROR: request write failed"
+        );
+
         close(file_descriptor);
         return EXIT_FAILURE;
     }
@@ -298,14 +214,23 @@ int main(int argc, char **argv) {
         return EXIT_FAILURE;
     }
 
-    if (
-        read_all(
-            file_descriptor,
-            response_wire,
-            sizeof(response_wire)
-        ) != 0
-    ) {
-        fprintf(stderr, "ERROR: response read failed\n");
+    io_status = qcpu_device_read_all(
+        file_descriptor,
+        response_wire,
+        sizeof(response_wire),
+        QCPU_DEVICE_IO_TIMEOUT_MS,
+        NULL
+    );
+
+    if (io_status != QCPU_DEVICE_IO_OK) {
+        fprintf(
+            stderr,
+            "%s\n",
+            io_status == QCPU_DEVICE_IO_TIMEOUT
+                ? "ERROR: response read timeout"
+                : "ERROR: response read failed"
+        );
+
         close(file_descriptor);
         return EXIT_FAILURE;
     }

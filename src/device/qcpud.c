@@ -1,6 +1,7 @@
 #define _POSIX_C_SOURCE 200809L
 
 #include "qcpu_device_wire.h"
+#include "qcpu_device_io.h"
 #include "../quantum/qcpu_kernel.h"
 
 #include <errno.h>
@@ -77,70 +78,6 @@ static void response_init(QCPUDeviceResponse *response) {
     response->magic = QCPU_DEVICE_RESPONSE_MAGIC;
     response->version = QCPU_DEVICE_PROTOCOL_VERSION;
     response->flags = device_flags();
-}
-
-static int read_all(
-    int file_descriptor,
-    uint8_t *buffer,
-    size_t size
-) {
-    size_t completed = 0U;
-
-    while (completed < size) {
-        ssize_t result = read(
-            file_descriptor,
-            buffer + completed,
-            size - completed
-        );
-
-        if (result == 0) {
-            return -1;
-        }
-
-        if (result < 0) {
-            if (errno == EINTR) {
-                continue;
-            }
-
-            return -1;
-        }
-
-        completed += (size_t)result;
-    }
-
-    return 0;
-}
-
-static int write_all(
-    int file_descriptor,
-    const uint8_t *buffer,
-    size_t size
-) {
-    size_t completed = 0U;
-
-    while (completed < size) {
-        ssize_t result = write(
-            file_descriptor,
-            buffer + completed,
-            size - completed
-        );
-
-        if (result == 0) {
-            return -1;
-        }
-
-        if (result < 0) {
-            if (errno == EINTR) {
-                continue;
-            }
-
-            return -1;
-        }
-
-        completed += (size_t)result;
-    }
-
-    return 0;
 }
 
 static void process_run_ghz(
@@ -254,16 +191,24 @@ static int serve_connection(int client_fd) {
     QCPUDeviceRequest request;
     QCPUDeviceResponse response;
     QCPUDeviceStatus protocol_status;
+    QCPUDeviceIOStatus io_status;
     unsigned command_for_log = 0U;
 
-    if (
-        read_all(
-            client_fd,
-            request_wire,
-            sizeof(request_wire)
-        ) != 0
-    ) {
-        fprintf(stderr, "ERROR: incomplete request packet\n");
+    io_status = qcpu_device_read_all(
+        client_fd,
+        request_wire,
+        sizeof(request_wire),
+        QCPU_DEVICE_IO_TIMEOUT_MS,
+        &stop_requested
+    );
+
+    if (io_status != QCPU_DEVICE_IO_OK) {
+        if (io_status == QCPU_DEVICE_IO_TIMEOUT) {
+            fprintf(stderr, "ERROR: request read timeout\n");
+        } else if (io_status != QCPU_DEVICE_IO_STOPPED) {
+            fprintf(stderr, "ERROR: incomplete request packet\n");
+        }
+
         return -1;
     }
 
@@ -291,13 +236,19 @@ static int serve_connection(int client_fd) {
         return -1;
     }
 
-    if (
-        write_all(
-            client_fd,
-            response_wire,
-            sizeof(response_wire)
-        ) != 0
-    ) {
+    io_status = qcpu_device_write_all(
+        client_fd,
+        response_wire,
+        sizeof(response_wire),
+        QCPU_DEVICE_IO_TIMEOUT_MS,
+        &stop_requested
+    );
+
+    if (io_status != QCPU_DEVICE_IO_OK) {
+        if (io_status == QCPU_DEVICE_IO_TIMEOUT) {
+            fprintf(stderr, "ERROR: response write timeout\n");
+        }
+
         return -1;
     }
 
@@ -468,9 +419,23 @@ int main(int argc, char **argv) {
         close(client_fd);
 
         if (result != 0) {
-            close(server_fd);
-            unlink(socket_path);
-            return EXIT_FAILURE;
+            fprintf(
+                stderr,
+                "WARN: client request failed; daemon remains available\n"
+            );
+
+            if (once) {
+                server_fd_for_signal = -1;
+                close(server_fd);
+                unlink(socket_path);
+                return EXIT_FAILURE;
+            }
+
+            if (stop_requested != 0) {
+                break;
+            }
+
+            continue;
         }
 
         if (once) {

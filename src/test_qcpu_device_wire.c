@@ -44,6 +44,36 @@ int main(void) {
     uint8_t bad_magic[QCPU_DEVICE_REQUEST_WIRE_SIZE];
     uint8_t bad_version[QCPU_DEVICE_REQUEST_WIRE_SIZE];
 
+    static const uint8_t expected_request[
+        QCPU_DEVICE_REQUEST_WIRE_SIZE
+    ] = {
+        0x31U, 0x56U, 0x44U, 0x51U,
+        0x01U, 0x00U, 0x02U, 0x00U,
+        0x03U, 0x00U, 0x00U, 0x00U,
+        0x14U, 0x00U, 0x00U, 0x00U,
+        0x32U, 0x79U, 0x06U, 0x00U,
+        0x00U, 0x00U, 0x00U, 0x00U
+    };
+
+    static const uint8_t expected_response[
+        QCPU_DEVICE_RESPONSE_WIRE_SIZE
+    ] = {
+        0x31U, 0x56U, 0x52U, 0x51U,
+        0x01U, 0x00U, 0x00U, 0x00U,
+        0x0fU, 0x00U, 0x00U, 0x00U,
+        0x03U, 0x00U, 0x00U, 0x00U,
+        0x08U, 0x00U, 0x00U, 0x00U,
+        0x00U, 0x00U, 0x00U, 0x00U,
+        0x14U, 0x00U, 0x00U, 0x00U,
+        0x00U, 0x00U, 0x00U, 0x00U,
+        0x07U, 0x00U, 0x00U, 0x00U,
+        0x00U, 0x00U, 0x00U, 0x00U,
+        0x00U, 0x00U, 0x00U, 0x00U,
+        0x00U, 0x00U, 0x00U, 0x00U,
+        0x00U, 0x00U, 0x00U, 0x00U,
+        0x00U, 0x00U, 0xf0U, 0x3fU
+    };
+
     require_true(
         qcpu_device_encode_request(
             request_wire,
@@ -53,11 +83,12 @@ int main(void) {
     );
 
     require_true(
-        request_wire[0] == UINT8_C(0x31) &&
-        request_wire[1] == UINT8_C(0x56) &&
-        request_wire[2] == UINT8_C(0x44) &&
-        request_wire[3] == UINT8_C(0x51),
-        "request_magic_little_endian"
+        memcmp(
+            request_wire,
+            expected_request,
+            sizeof(expected_request)
+        ) == 0,
+        "request_golden_packet"
     );
 
     require_true(
@@ -112,6 +143,15 @@ int main(void) {
     );
 
     require_true(
+        memcmp(
+            response_wire,
+            expected_response,
+            sizeof(expected_response)
+        ) == 0,
+        "response_golden_packet"
+    );
+
+    require_true(
         qcpu_device_decode_response(
             &decoded_response,
             response_wire,
@@ -136,6 +176,7 @@ int main(void) {
     printf("PASS: QCPU_DEVICE_BAD_MAGIC_REJECTED\n");
     printf("PASS: QCPU_DEVICE_BAD_VERSION_REJECTED\n");
     printf("PASS: QCPU_DEVICE_WIRE_ROUND_TRIP_READY\n");
+    printf("PASS: QCPU_DEVICE_GOLDEN_PACKETS_READY\n");
 
     return EXIT_SUCCESS;
 }

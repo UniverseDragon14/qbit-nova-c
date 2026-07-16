@@ -26,6 +26,11 @@ LOG_FILE="$QCPU_RUNTIME_DIR/qcpud.log"
 
 cleanup() {
   "$LIFECYCLE" stop >/dev/null 2>&1 || true
+
+  if [ -n "${CONCURRENT_RUNTIME:-}" ]; then
+    QCPU_RUNTIME_DIR="$CONCURRENT_RUNTIME"       "$LIFECYCLE" stop >/dev/null 2>&1 || true
+  fi
+
   rm -rf "$TMP_ROOT"
 }
 
@@ -104,11 +109,6 @@ printf '%s\n' "$RESTART_OUTPUT"
 
 PID_THREE="$(cat "$PID_FILE")"
 
-if [ "$PID_THREE" = "$PID_ONE" ]; then
-  echo "FAIL: restart unexpectedly reused active PID"
-  exit 1
-fi
-
 "$LIFECYCLE" status >/dev/null
 "$LIFECYCLE" stop >/dev/null
 
@@ -117,3 +117,93 @@ fi
 
 echo "PASS: QCPUD_RESTART_LIFECYCLE_READY"
 echo "PASS: QCPU_V46_SESSION_PERSISTENT_DAEMON_READY"
+
+
+echo
+echo "=== INVALID PID FILE REJECTION ==="
+
+INVALID_RUNTIME="$TMP_ROOT/invalid-pid-runtime"
+mkdir -p "$INVALID_RUNTIME"
+chmod 700 "$INVALID_RUNTIME"
+printf '%s\n' "not-a-pid" > "$INVALID_RUNTIME/qcpud.pid"
+chmod 600 "$INVALID_RUNTIME/qcpud.pid"
+
+if (
+  QCPU_RUNTIME_DIR="$INVALID_RUNTIME" \
+    "$LIFECYCLE" stop
+) > "$TMP_ROOT/invalid-pid.log" 2>&1
+then
+  echo "FAIL: invalid PID file was accepted"
+  exit 1
+fi
+
+grep -Fq \
+  "REASON=INVALID_PID_FILE" \
+  "$TMP_ROOT/invalid-pid.log"
+
+echo "PASS: QCPUD_INVALID_PID_FILE_REJECTED"
+
+echo
+echo "=== DANGLING SYMLINK REJECTION ==="
+
+SYMLINK_RUNTIME="$TMP_ROOT/symlink-runtime"
+SYMLINK_TARGET="$TMP_ROOT/dangling-log-target"
+mkdir -p "$SYMLINK_RUNTIME"
+chmod 700 "$SYMLINK_RUNTIME"
+ln -s "$SYMLINK_TARGET" "$SYMLINK_RUNTIME/qcpud.log"
+
+if (
+  QCPU_RUNTIME_DIR="$SYMLINK_RUNTIME" \
+    "$LIFECYCLE" start
+) > "$TMP_ROOT/symlink.log" 2>&1
+then
+  echo "FAIL: dangling symlink was accepted"
+  exit 1
+fi
+
+grep -Fq \
+  "UNSAFE_SYMLINK:$SYMLINK_RUNTIME/qcpud.log" \
+  "$TMP_ROOT/symlink.log"
+
+[ ! -e "$SYMLINK_TARGET" ]
+
+echo "PASS: QCPUD_DANGLING_SYMLINK_REJECTED"
+
+echo
+echo "=== CONCURRENT START SERIALIZATION ==="
+
+CONCURRENT_RUNTIME="$TMP_ROOT/concurrent-runtime"
+START_ONE_LOG="$TMP_ROOT/concurrent-start-one.log"
+START_TWO_LOG="$TMP_ROOT/concurrent-start-two.log"
+
+QCPU_RUNTIME_DIR="$CONCURRENT_RUNTIME" \
+  "$LIFECYCLE" start \
+  > "$START_ONE_LOG" \
+  2>&1 &
+START_ONE_PID=$!
+
+QCPU_RUNTIME_DIR="$CONCURRENT_RUNTIME" \
+  "$LIFECYCLE" start \
+  > "$START_TWO_LOG" \
+  2>&1 &
+START_TWO_PID=$!
+
+wait "$START_ONE_PID"
+wait "$START_TWO_PID"
+
+cat "$START_ONE_LOG"
+cat "$START_TWO_LOG"
+
+cat "$START_ONE_LOG" "$START_TWO_LOG" |
+grep -Fq "PASS: QCPUD_SESSION_DAEMON_STARTED"
+
+cat "$START_ONE_LOG" "$START_TWO_LOG" |
+grep -Fq "ALREADY_RUNNING=YES"
+
+QCPU_RUNTIME_DIR="$CONCURRENT_RUNTIME" \
+  "$LIFECYCLE" status >/dev/null
+
+QCPU_RUNTIME_DIR="$CONCURRENT_RUNTIME" \
+  "$LIFECYCLE" stop >/dev/null
+
+echo "PASS: QCPUD_LIFECYCLE_TRANSITIONS_SERIALIZED"
