@@ -21,6 +21,7 @@ struct qcpu_test_backend {
     uint64_t dispatches;
     uint64_t cancels;
     uint32_t active;
+    uint32_t waiters;
     uint32_t max_concurrent;
 };
 
@@ -334,7 +335,7 @@ int qcpu_test_backend_destroy(
 
     (void)pthread_mutex_lock(&backend->mutex);
 
-    if (backend->active != 0U) {
+    if (backend->active != 0U || backend->waiters != 0U) {
         (void)pthread_mutex_unlock(&backend->mutex);
         errno = EBUSY;
         return -1;
@@ -380,6 +381,7 @@ int qcpu_test_backend_wait_started(
     struct timespec now;
     struct timespec deadline;
     uint64_t now_ns;
+    int error_number = 0;
     int result = 0;
 
     if (backend == NULL) {
@@ -401,6 +403,7 @@ int qcpu_test_backend_wait_started(
     deadline = qcpu_test_ns_to_timespec(now_ns + timeout_ns);
 
     (void)pthread_mutex_lock(&backend->mutex);
+    backend->waiters++;
 
     while (!backend->started) {
         result = pthread_cond_timedwait(
@@ -410,19 +413,24 @@ int qcpu_test_backend_wait_started(
         );
 
         if (result == ETIMEDOUT) {
-            (void)pthread_mutex_unlock(&backend->mutex);
-            errno = ETIMEDOUT;
-            return -1;
+            error_number = ETIMEDOUT;
+            break;
         }
 
         if (result != 0 && result != EINTR) {
-            (void)pthread_mutex_unlock(&backend->mutex);
-            errno = result;
-            return -1;
+            error_number = result;
+            break;
         }
     }
 
+    backend->waiters--;
+    (void)pthread_cond_broadcast(&backend->condition);
     (void)pthread_mutex_unlock(&backend->mutex);
+
+    if (error_number != 0) {
+        errno = error_number;
+        return -1;
+    }
 
     return 0;
 }
@@ -461,6 +469,19 @@ uint32_t qcpu_test_backend_max_concurrent(
 
     (void)pthread_mutex_lock(&backend->mutex);
     value = backend->max_concurrent;
+    (void)pthread_mutex_unlock(&backend->mutex);
+
+    return value;
+}
+
+uint32_t qcpu_test_backend_waiters(
+    struct qcpu_test_backend *backend
+)
+{
+    uint32_t value;
+
+    (void)pthread_mutex_lock(&backend->mutex);
+    value = backend->waiters;
     (void)pthread_mutex_unlock(&backend->mutex);
 
     return value;

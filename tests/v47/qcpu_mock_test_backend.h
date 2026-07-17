@@ -64,6 +64,10 @@ uint32_t qcpu_test_backend_max_concurrent(
     struct qcpu_test_backend *backend
 );
 
+uint32_t qcpu_test_backend_waiters(
+    struct qcpu_test_backend *backend
+);
+
 void qcpu_test_backend_release(
     struct qcpu_test_backend *backend
 );

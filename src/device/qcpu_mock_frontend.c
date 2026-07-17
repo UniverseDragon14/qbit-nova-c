@@ -538,6 +538,7 @@ int qcpu_mock_create(
     bool mutex_ready = false;
     bool condition_attributes_ready = false;
     bool condition_ready = false;
+    int failure_error = 0;
     int result;
 
     if (out == NULL || config == NULL) {
@@ -587,6 +588,7 @@ int qcpu_mock_create(
         CLOCK_MONOTONIC
     );
     if (result != 0) {
+        failure_error = result;
         goto create_failure;
     }
 
@@ -595,6 +597,7 @@ int qcpu_mock_create(
         &condition_attributes
     );
     if (result != 0) {
+        failure_error = result;
         goto create_failure;
     }
     condition_ready = true;
@@ -639,7 +642,7 @@ int qcpu_mock_create(
     return 0;
 
 invalid_backend:
-    errno = EINVAL;
+    failure_error = EINVAL;
 
 create_failure:
     if (condition_ready) {
@@ -653,9 +656,7 @@ create_failure:
     }
     free(mock);
 
-    if (errno == 0) {
-        errno = result;
-    }
+    errno = failure_error != 0 ? failure_error : EIO;
 
     return -1;
 }

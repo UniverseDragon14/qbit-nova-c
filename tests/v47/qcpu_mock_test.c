@@ -96,6 +96,13 @@ struct exchange_thread_context {
     int error_number;
 };
 
+struct wait_started_thread_context {
+    struct qcpu_test_backend *backend;
+    uint64_t timeout_ns;
+    int result;
+    int error_number;
+};
+
 static uint64_t test_timespec_to_ns(const struct timespec *value)
 {
     return ((uint64_t)value->tv_sec * UINT64_C(1000000000)) +
@@ -250,6 +257,20 @@ static void *exchange_thread(void *opaque)
     return NULL;
 }
 
+static void *wait_started_thread(void *opaque)
+{
+    struct wait_started_thread_context *context = opaque;
+
+    context->result = qcpu_test_backend_wait_started(
+        context->backend,
+        context->timeout_ns
+    );
+    context->error_number =
+        context->result == 0 ? 0 : errno;
+
+    return NULL;
+}
+
 static int test_abi_and_ioctl_identity(void)
 {
     CHECK(QCPU_UAPI_ABI_VERSION == 1U);
@@ -275,6 +296,33 @@ static int test_abi_and_ioctl_identity(void)
           sizeof(struct qcpu_uapi_exchange_v1));
 
     puts("PASS: ABI_LAYOUT_AND_IOCTL_IDENTITY");
+    return 0;
+}
+
+static int test_create_failure_errno_preservation(void)
+{
+    char runtime_template[] = "/tmp/qcpu-v47-create-fail-XXXXXX";
+    char *runtime_dir;
+    struct qcpu_backend_ops invalid_ops;
+    struct qcpu_mock_config config;
+    struct qcpu_mock *mock = (struct qcpu_mock *)(uintptr_t)1U;
+
+    runtime_dir = mkdtemp(runtime_template);
+    CHECK(runtime_dir != NULL);
+    CHECK(chmod(runtime_dir, S_IRWXU) == 0);
+
+    memset(&invalid_ops, 0, sizeof(invalid_ops));
+    memset(&config, 0, sizeof(config));
+    config.runtime_dir = runtime_dir;
+    config.backend_ops = &invalid_ops;
+
+    errno = EALREADY;
+    CHECK(qcpu_mock_create(&mock, &config) == -1);
+    CHECK(errno == EINVAL);
+    CHECK(mock == NULL);
+    CHECK(rmdir(runtime_dir) == 0);
+
+    puts("PASS: CREATE_FAILURE_ERRNO_PRESERVATION");
     return 0;
 }
 
@@ -1094,6 +1142,49 @@ static int test_busy_cancel_and_destroy_quiescence(void)
     return 0;
 }
 
+static int test_backend_waiter_destroy_quiescence(void)
+{
+    struct qcpu_test_backend *backend = NULL;
+    struct wait_started_thread_context context;
+    pthread_t waiter;
+    struct timespec pause = {
+        .tv_sec = 0,
+        .tv_nsec = 1000000L
+    };
+    unsigned int attempt;
+
+    CHECK(qcpu_test_backend_create(&backend) == 0);
+
+    memset(&context, 0, sizeof(context));
+    context.backend = backend;
+    context.timeout_ns = TEST_TIMEOUT_NS;
+
+    CHECK(pthread_create(
+        &waiter,
+        NULL,
+        wait_started_thread,
+        &context
+    ) == 0);
+
+    for (attempt = 0U; attempt < 1000U; attempt++) {
+        if (qcpu_test_backend_waiters(backend) != 0U) {
+            break;
+        }
+        (void)nanosleep(&pause, NULL);
+    }
+
+    CHECK(qcpu_test_backend_waiters(backend) == 1U);
+    CHECK_ERR(qcpu_test_backend_destroy(backend), EBUSY);
+    CHECK(pthread_join(waiter, NULL) == 0);
+    CHECK(context.result == -1);
+    CHECK(context.error_number == ETIMEDOUT);
+    CHECK(qcpu_test_backend_waiters(backend) == 0U);
+    CHECK(qcpu_test_backend_destroy(backend) == 0);
+
+    puts("PASS: BACKEND_WAITER_DESTROY_QUIESCENCE");
+    return 0;
+}
+
 static int write_byte(int descriptor, char value)
 {
     ssize_t count = write(descriptor, &value, 1U);
@@ -1312,6 +1403,7 @@ static int test_repeated_lifecycle(void)
 int main(void)
 {
     CHECK(test_abi_and_ioctl_identity() == 0);
+    CHECK(test_create_failure_errno_preservation() == 0);
     CHECK(test_caps_status_and_unknown_ioctl() == 0);
     CHECK(test_session_exclusivity() == 0);
     CHECK(test_status_and_ghz_success() == 0);
@@ -1322,6 +1414,7 @@ int main(void)
     CHECK(test_timeout_and_same_session_recovery() == 0);
     CHECK(test_bounded_uncooperative_timeout() == 0);
     CHECK(test_busy_cancel_and_destroy_quiescence() == 0);
+    CHECK(test_backend_waiter_destroy_quiescence() == 0);
     CHECK(test_cross_process_lock() == 0);
     CHECK(test_repeated_lifecycle() == 0);
 
