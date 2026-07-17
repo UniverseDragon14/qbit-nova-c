@@ -16,6 +16,7 @@ struct qcpu_test_backend {
     enum qcpu_test_backend_mode mode;
     double norm;
     bool cancel_requested;
+    bool release_requested;
     bool started;
     uint64_t dispatches;
     uint64_t cancels;
@@ -117,6 +118,21 @@ static int qcpu_test_backend_exchange(
         return -ECANCELED;
     }
 
+    if (mode == QCPU_TEST_BACKEND_IGNORE_CANCEL_UNTIL_RELEASE) {
+        while (!backend->release_requested) {
+            (void)pthread_cond_wait(
+                &backend->condition,
+                &backend->mutex
+            );
+        }
+
+        backend->active--;
+        (void)pthread_cond_broadcast(&backend->condition);
+        (void)pthread_mutex_unlock(&backend->mutex);
+
+        return -ECANCELED;
+    }
+
     (void)pthread_mutex_unlock(&backend->mutex);
 
     if (mode == QCPU_TEST_BACKEND_DISCONNECT) {
@@ -194,6 +210,7 @@ static int qcpu_test_backend_exchange(
         response->status = QCPU_UAPI_STATUS_KERNEL;
         break;
     case QCPU_TEST_BACKEND_DELAY_UNTIL_CANCELED:
+    case QCPU_TEST_BACKEND_IGNORE_CANCEL_UNTIL_RELEASE:
     case QCPU_TEST_BACKEND_DISCONNECT:
     case QCPU_TEST_BACKEND_ENGINE_FAILURE:
         break;
@@ -340,6 +357,7 @@ void qcpu_test_backend_set_mode(
     backend->mode = mode;
     backend->started = false;
     backend->cancel_requested = false;
+    backend->release_requested = false;
     (void)pthread_mutex_unlock(&backend->mutex);
 }
 
@@ -446,6 +464,69 @@ uint32_t qcpu_test_backend_max_concurrent(
     (void)pthread_mutex_unlock(&backend->mutex);
 
     return value;
+}
+
+
+void qcpu_test_backend_release(
+    struct qcpu_test_backend *backend
+)
+{
+    (void)pthread_mutex_lock(&backend->mutex);
+    backend->release_requested = true;
+    (void)pthread_cond_broadcast(&backend->condition);
+    (void)pthread_mutex_unlock(&backend->mutex);
+}
+
+int qcpu_test_backend_wait_idle(
+    struct qcpu_test_backend *backend,
+    uint64_t timeout_ns
+)
+{
+    struct timespec now;
+    struct timespec deadline;
+    uint64_t now_ns;
+    int result = 0;
+
+    if (backend == NULL) {
+        errno = EINVAL;
+        return -1;
+    }
+
+    if (clock_gettime(CLOCK_MONOTONIC, &now) != 0) {
+        return -1;
+    }
+
+    now_ns = qcpu_test_timespec_to_ns(&now);
+    if (UINT64_MAX - now_ns < timeout_ns) {
+        errno = ERANGE;
+        return -1;
+    }
+
+    deadline = qcpu_test_ns_to_timespec(now_ns + timeout_ns);
+    (void)pthread_mutex_lock(&backend->mutex);
+
+    while (backend->active != 0U) {
+        result = pthread_cond_timedwait(
+            &backend->condition,
+            &backend->mutex,
+            &deadline
+        );
+
+        if (result == ETIMEDOUT) {
+            (void)pthread_mutex_unlock(&backend->mutex);
+            errno = ETIMEDOUT;
+            return -1;
+        }
+
+        if (result != 0 && result != EINTR) {
+            (void)pthread_mutex_unlock(&backend->mutex);
+            errno = result;
+            return -1;
+        }
+    }
+
+    (void)pthread_mutex_unlock(&backend->mutex);
+    return 0;
 }
 
 const struct qcpu_backend_ops *qcpu_test_backend_ops(void)

@@ -11,6 +11,7 @@ enum qcpu_test_backend_mode {
     QCPU_TEST_BACKEND_SUCCESS_ZERO,
     QCPU_TEST_BACKEND_SUCCESS_ONE,
     QCPU_TEST_BACKEND_DELAY_UNTIL_CANCELED,
+    QCPU_TEST_BACKEND_IGNORE_CANCEL_UNTIL_RELEASE,
     QCPU_TEST_BACKEND_DISCONNECT,
     QCPU_TEST_BACKEND_BAD_RESPONSE_MAGIC,
     QCPU_TEST_BACKEND_BAD_RESPONSE_VERSION,
@@ -61,6 +62,15 @@ uint64_t qcpu_test_backend_cancels(
 
 uint32_t qcpu_test_backend_max_concurrent(
     struct qcpu_test_backend *backend
+);
+
+void qcpu_test_backend_release(
+    struct qcpu_test_backend *backend
+);
+
+int qcpu_test_backend_wait_idle(
+    struct qcpu_test_backend *backend,
+    uint64_t timeout_ns
 );
 
 const struct qcpu_backend_ops *qcpu_test_backend_ops(void);

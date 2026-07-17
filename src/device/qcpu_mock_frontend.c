@@ -9,6 +9,7 @@
 #include <pthread.h>
 #include <stdbool.h>
 #include <stdint.h>
+#include <stdatomic.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -25,6 +26,7 @@
 #define QCPU_MOCK_LOCK_FILE "qcpu_mock.lock"
 #define QCPU_MOCK_BACKEND_DEFAULT "stage2-mock"
 #define QCPU_MOCK_VERSION_DEFAULT "v4.7-stage2a"
+#define QCPU_MOCK_CANCEL_GRACE_NS UINT64_C(100000000)
 
 struct qcpu_mock {
     pthread_mutex_t mutex;
@@ -44,6 +46,7 @@ struct qcpu_mock {
     bool cancel_requested;
     bool cancel_sent;
     int lock_fd;
+    struct qcpu_exchange_task *active_task;
 
     uint32_t device_state;
     int32_t last_errno;
@@ -53,6 +56,7 @@ struct qcpu_mock {
 };
 
 struct qcpu_exchange_task {
+    atomic_uint references;
     struct qcpu_mock *mock;
     struct qcpu_backend_ops backend_ops;
     void *backend_context;
@@ -61,12 +65,24 @@ struct qcpu_exchange_task {
     uint64_t absolute_deadline_ns;
     int backend_result;
     bool done;
+    bool caller_abandoned;
 };
 
 static int qcpu_fail(int error_number)
 {
     errno = error_number;
     return -1;
+}
+
+static void qcpu_task_release(struct qcpu_exchange_task *task)
+{
+    if (atomic_fetch_sub_explicit(
+            &task->references,
+            1U,
+            memory_order_acq_rel
+        ) == 1U) {
+        free(task);
+    }
 }
 
 static void qcpu_copy_text(char *destination, size_t size, const char *source)
@@ -273,6 +289,7 @@ static void qcpu_finalize_exchange_locked(
 static void *qcpu_exchange_worker(void *opaque)
 {
     struct qcpu_exchange_task *task = opaque;
+    struct qcpu_mock *mock = task->mock;
     int result;
 
     result = task->backend_ops.exchange(
@@ -282,11 +299,24 @@ static void *qcpu_exchange_worker(void *opaque)
         &task->response
     );
 
-    (void)pthread_mutex_lock(&task->mock->mutex);
+    (void)pthread_mutex_lock(&mock->mutex);
     task->backend_result = result;
     task->done = true;
-    (void)pthread_cond_broadcast(&task->mock->condition);
-    (void)pthread_mutex_unlock(&task->mock->mutex);
+
+    if (task->caller_abandoned && mock->active_task == task) {
+        mock->active_task = NULL;
+        mock->busy = false;
+        mock->cancel_requested = false;
+        mock->cancel_sent = false;
+        mock->device_state =
+            (!mock->backend_attached || result == -ENODEV)
+                ? QCPU_UAPI_DEVICE_OFFLINE
+                : QCPU_UAPI_DEVICE_IDLE;
+    }
+
+    (void)pthread_cond_broadcast(&mock->condition);
+    (void)pthread_mutex_unlock(&mock->mutex);
+    qcpu_task_release(task);
 
     return NULL;
 }
@@ -796,20 +826,24 @@ static int qcpu_exchange_ioctl(
     struct qcpu_uapi_exchange_v1 *exchange
 )
 {
-    struct qcpu_exchange_task task;
+    struct qcpu_exchange_task *task = NULL;
     pthread_t worker;
+    pthread_attr_t worker_attributes;
+    bool worker_attributes_ready = false;
     struct timespec deadline;
+    struct timespec cancel_deadline;
+    struct timespec now;
     uint64_t absolute_deadline_ns = 0U;
+    uint64_t now_ns;
     bool timed_out = false;
     bool call_cancel = false;
     int wait_result;
     int create_result;
+    int attribute_result;
     int error_number = 0;
     uint32_t protocol_status = QCPU_UAPI_STATUS_OK;
     bool offline = false;
     int return_value = 0;
-
-    memset(&task, 0, sizeof(task));
 
     (void)pthread_mutex_lock(&mock->mutex);
 
@@ -822,29 +856,71 @@ static int qcpu_exchange_ioctl(
         return -1;
     }
 
+    task = calloc(1U, sizeof(*task));
+    if (task == NULL) {
+        qcpu_set_failure_response(exchange, QCPU_UAPI_STATUS_IO);
+        qcpu_finalize_exchange_locked(
+            mock,
+            false,
+            false,
+            ENOMEM,
+            QCPU_UAPI_STATUS_IO
+        );
+        (void)pthread_mutex_unlock(&mock->mutex);
+        return qcpu_fail(ENOMEM);
+    }
+
+    atomic_init(&task->references, 2U);
+    task->mock = mock;
+    task->backend_ops = mock->backend_ops;
+    task->backend_context = mock->backend_context;
+    task->request = exchange->request;
+    task->absolute_deadline_ns = absolute_deadline_ns;
+
     mock->busy = true;
     mock->cancel_requested = false;
     mock->cancel_sent = false;
     mock->device_state = QCPU_UAPI_DEVICE_BUSY;
+    mock->active_task = task;
 
-    task.mock = mock;
-    task.backend_ops = mock->backend_ops;
-    task.backend_context = mock->backend_context;
-    task.request = exchange->request;
-    task.absolute_deadline_ns = absolute_deadline_ns;
+    attribute_result = pthread_attr_init(&worker_attributes);
+    if (attribute_result == 0) {
+        worker_attributes_ready = true;
+        attribute_result = pthread_attr_setdetachstate(
+            &worker_attributes,
+            PTHREAD_CREATE_DETACHED
+        );
+    }
+
+    if (attribute_result != 0) {
+        mock->active_task = NULL;
+        qcpu_set_failure_response(exchange, QCPU_UAPI_STATUS_IO);
+        qcpu_finalize_exchange_locked(
+            mock,
+            false,
+            false,
+            attribute_result,
+            QCPU_UAPI_STATUS_IO
+        );
+        if (worker_attributes_ready) {
+            (void)pthread_attr_destroy(&worker_attributes);
+        }
+        free(task);
+        (void)pthread_mutex_unlock(&mock->mutex);
+        return qcpu_fail(attribute_result);
+    }
 
     create_result = pthread_create(
         &worker,
-        NULL,
+        &worker_attributes,
         qcpu_exchange_worker,
-        &task
+        task
     );
+    (void)pthread_attr_destroy(&worker_attributes);
 
     if (create_result != 0) {
-        qcpu_set_failure_response(
-            exchange,
-            QCPU_UAPI_STATUS_IO
-        );
+        mock->active_task = NULL;
+        qcpu_set_failure_response(exchange, QCPU_UAPI_STATUS_IO);
         qcpu_finalize_exchange_locked(
             mock,
             false,
@@ -852,20 +928,21 @@ static int qcpu_exchange_ioctl(
             create_result,
             QCPU_UAPI_STATUS_IO
         );
+        free(task);
         (void)pthread_mutex_unlock(&mock->mutex);
         return qcpu_fail(create_result);
     }
 
     deadline = qcpu_ns_to_timespec(absolute_deadline_ns);
 
-    while (!task.done) {
+    while (!task->done) {
         wait_result = pthread_cond_timedwait(
             &mock->condition,
             &mock->mutex,
             &deadline
         );
 
-        if (wait_result == ETIMEDOUT && !task.done) {
+        if (wait_result == ETIMEDOUT && !task->done) {
             timed_out = true;
             call_cancel = qcpu_request_cancel_locked(mock);
             break;
@@ -881,12 +958,55 @@ static int qcpu_exchange_ioctl(
     (void)pthread_mutex_unlock(&mock->mutex);
 
     if (call_cancel) {
-        (void)task.backend_ops.cancel(task.backend_context);
+        (void)task->backend_ops.cancel(task->backend_context);
     }
 
-    (void)pthread_join(worker, NULL);
-
     (void)pthread_mutex_lock(&mock->mutex);
+
+    if (timed_out && !task->done) {
+        if (clock_gettime(CLOCK_MONOTONIC, &now) == 0) {
+            now_ns = qcpu_timespec_to_ns(&now);
+            if (UINT64_MAX - now_ns >= QCPU_MOCK_CANCEL_GRACE_NS) {
+                cancel_deadline = qcpu_ns_to_timespec(
+                    now_ns + QCPU_MOCK_CANCEL_GRACE_NS
+                );
+
+                while (!task->done) {
+                    wait_result = pthread_cond_timedwait(
+                        &mock->condition,
+                        &mock->mutex,
+                        &cancel_deadline
+                    );
+
+                    if (wait_result == ETIMEDOUT && !task->done) {
+                        break;
+                    }
+
+                    if (wait_result != 0 && wait_result != EINTR) {
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
+    if (timed_out && !task->done) {
+        task->caller_abandoned = true;
+        mock->failed_requests++;
+        qcpu_record_result_locked(
+            mock,
+            ETIMEDOUT,
+            QCPU_UAPI_STATUS_TIMEOUT
+        );
+        qcpu_set_failure_response(
+            exchange,
+            QCPU_UAPI_STATUS_TIMEOUT
+        );
+        (void)pthread_cond_broadcast(&mock->condition);
+        (void)pthread_mutex_unlock(&mock->mutex);
+        qcpu_task_release(task);
+        return qcpu_fail(ETIMEDOUT);
+    }
 
     if (timed_out) {
         error_number = ETIMEDOUT;
@@ -894,25 +1014,25 @@ static int qcpu_exchange_ioctl(
         qcpu_set_failure_response(exchange, protocol_status);
         return_value = -1;
     } else if (mock->cancel_requested ||
-               task.backend_result == -ECANCELED) {
+               task->backend_result == -ECANCELED) {
         error_number = ECANCELED;
         protocol_status = QCPU_UAPI_STATUS_CANCELED;
         qcpu_set_failure_response(exchange, protocol_status);
         return_value = -1;
-    } else if (task.backend_result != 0) {
-        if (task.backend_result == -ENODEV) {
+    } else if (task->backend_result != 0) {
+        if (task->backend_result == -ENODEV) {
             error_number = ENODEV;
             protocol_status = QCPU_UAPI_STATUS_BACKEND_ABSENT;
             offline = true;
-        } else if (task.backend_result == -ETIMEDOUT) {
+        } else if (task->backend_result == -ETIMEDOUT) {
             error_number = ETIMEDOUT;
             protocol_status = QCPU_UAPI_STATUS_TIMEOUT;
-        } else if (task.backend_result == -ECANCELED) {
+        } else if (task->backend_result == -ECANCELED) {
             error_number = ECANCELED;
             protocol_status = QCPU_UAPI_STATUS_CANCELED;
-        } else if (qcpu_status_known(task.response.status) &&
-                   task.response.status != QCPU_UAPI_STATUS_OK) {
-            protocol_status = task.response.status;
+        } else if (qcpu_status_known(task->response.status) &&
+                   task->response.status != QCPU_UAPI_STATUS_OK) {
+            protocol_status = task->response.status;
             error_number = qcpu_status_to_errno(protocol_status);
             offline =
                 protocol_status ==
@@ -925,8 +1045,8 @@ static int qcpu_exchange_ioctl(
         qcpu_set_failure_response(exchange, protocol_status);
         return_value = -1;
     } else if (qcpu_validate_backend_response(
-                   &task.request,
-                   &task.response,
+                   &task->request,
+                   &task->response,
                    &error_number,
                    &protocol_status,
                    &offline
@@ -934,9 +1054,10 @@ static int qcpu_exchange_ioctl(
         qcpu_set_failure_response(exchange, protocol_status);
         return_value = -1;
     } else {
-        exchange->response = task.response;
+        exchange->response = task->response;
     }
 
+    mock->active_task = NULL;
     qcpu_finalize_exchange_locked(
         mock,
         offline,
@@ -946,6 +1067,7 @@ static int qcpu_exchange_ioctl(
     );
 
     (void)pthread_mutex_unlock(&mock->mutex);
+    qcpu_task_release(task);
 
     if (return_value != 0) {
         return qcpu_fail(error_number);
@@ -1000,6 +1122,13 @@ int qcpu_mock_close(struct qcpu_mock *mock)
         return qcpu_fail(EINVAL);
     }
 
+    if (mock->busy &&
+        mock->active_task != NULL &&
+        mock->active_task->caller_abandoned) {
+        (void)pthread_mutex_unlock(&mock->mutex);
+        return qcpu_fail(EBUSY);
+    }
+
     if (mock->busy) {
         call_cancel = qcpu_request_cancel_locked(mock);
         backend_ops = mock->backend_ops;
@@ -1034,11 +1163,6 @@ int qcpu_mock_close(struct qcpu_mock *mock)
         }
     }
 
-    if (unlink(mock->lock_path) != 0 &&
-        errno != ENOENT &&
-        saved_errno == 0) {
-        saved_errno = errno;
-    }
 
     (void)pthread_mutex_unlock(&mock->mutex);
 

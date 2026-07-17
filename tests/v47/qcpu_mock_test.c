@@ -12,6 +12,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 #include <sys/ioctl.h>
 #include <sys/stat.h>
 #include <sys/types.h>
@@ -94,6 +95,35 @@ struct exchange_thread_context {
     int result;
     int error_number;
 };
+
+static uint64_t test_timespec_to_ns(const struct timespec *value)
+{
+    return ((uint64_t)value->tv_sec * UINT64_C(1000000000)) +
+           (uint64_t)value->tv_nsec;
+}
+
+static int remove_runtime_lock_file(const char *runtime_dir)
+{
+    char lock_path[256];
+    int written;
+
+    written = snprintf(
+        lock_path,
+        sizeof(lock_path),
+        "%s/qcpu_mock.lock",
+        runtime_dir
+    );
+    if (written < 0 || (size_t)written >= sizeof(lock_path)) {
+        errno = ENAMETOOLONG;
+        return -1;
+    }
+
+    if (unlink(lock_path) != 0 && errno != ENOENT) {
+        return -1;
+    }
+
+    return 0;
+}
 
 static struct qcpu_uapi_exchange_v1 make_status_exchange(
     uint64_t timeout_ns
@@ -197,6 +227,7 @@ static int fixture_destroy(struct test_fixture *fixture)
     }
 
     if (fixture->runtime_dir != NULL) {
+        CHECK(remove_runtime_lock_file(fixture->runtime_dir) == 0);
         CHECK(rmdir(fixture->runtime_dir) == 0);
         fixture->runtime_dir = NULL;
     }
@@ -889,6 +920,106 @@ static int test_timeout_and_same_session_recovery(void)
     return 0;
 }
 
+static int test_bounded_uncooperative_timeout(void)
+{
+    struct test_fixture fixture;
+    struct qcpu_uapi_exchange_v1 exchange;
+    struct qcpu_uapi_status_v1 status;
+    struct timespec started;
+    struct timespec finished;
+    struct timespec pause_time = {0, 1000000L};
+    uint64_t elapsed_ns;
+    bool idle_observed = false;
+
+    CHECK(fixture_create(&fixture, true) == 0);
+    CHECK(fixture_open(&fixture) == 0);
+
+    qcpu_test_backend_set_mode(
+        fixture.backend,
+        QCPU_TEST_BACKEND_IGNORE_CANCEL_UNTIL_RELEASE
+    );
+
+    exchange = make_status_exchange(UINT64_C(50000000));
+    CHECK(clock_gettime(CLOCK_MONOTONIC, &started) == 0);
+    CHECK_ERR(
+        qcpu_mock_ioctl(
+            fixture.mock,
+            QCPU_IOC_EXCHANGE_V1,
+            &exchange
+        ),
+        ETIMEDOUT
+    );
+    CHECK(clock_gettime(CLOCK_MONOTONIC, &finished) == 0);
+
+    elapsed_ns =
+        test_timespec_to_ns(&finished) -
+        test_timespec_to_ns(&started);
+
+    CHECK(elapsed_ns < UINT64_C(500000000));
+    CHECK(exchange.response.status == QCPU_UAPI_STATUS_TIMEOUT);
+    CHECK(qcpu_test_backend_cancels(fixture.backend) == 1U);
+
+    CHECK(qcpu_mock_ioctl(
+        fixture.mock,
+        QCPU_IOC_GET_STATUS_V1,
+        &status
+    ) == 0);
+    CHECK(status.device_state == QCPU_UAPI_DEVICE_BUSY);
+    CHECK(status.failed_requests == 1U);
+
+    exchange = make_status_exchange(0U);
+    CHECK_ERR(
+        qcpu_mock_ioctl(
+            fixture.mock,
+            QCPU_IOC_EXCHANGE_V1,
+            &exchange
+        ),
+        EBUSY
+    );
+    CHECK_ERR(qcpu_mock_close(fixture.mock), EBUSY);
+    CHECK_ERR(qcpu_mock_destroy(fixture.mock), EBUSY);
+
+    qcpu_test_backend_release(fixture.backend);
+    CHECK(qcpu_test_backend_wait_idle(
+        fixture.backend,
+        TEST_TIMEOUT_NS
+    ) == 0);
+
+    for (unsigned int index = 0U; index < 500U; index++) {
+        CHECK(qcpu_mock_ioctl(
+            fixture.mock,
+            QCPU_IOC_GET_STATUS_V1,
+            &status
+        ) == 0);
+
+        if (status.device_state == QCPU_UAPI_DEVICE_IDLE) {
+            idle_observed = true;
+            break;
+        }
+
+        (void)nanosleep(&pause_time, NULL);
+    }
+
+    CHECK(idle_observed);
+    CHECK(status.failed_requests == 1U);
+
+    qcpu_test_backend_set_mode(
+        fixture.backend,
+        QCPU_TEST_BACKEND_SUCCESS
+    );
+    exchange = make_status_exchange(0U);
+    CHECK(qcpu_mock_ioctl(
+        fixture.mock,
+        QCPU_IOC_EXCHANGE_V1,
+        &exchange
+    ) == 0);
+
+    CHECK(fixture_destroy(&fixture) == 0);
+
+    puts("PASS: BOUNDED_UNCOOPERATIVE_TIMEOUT_RETURN");
+    return 0;
+}
+
 static int test_busy_cancel_and_destroy_quiescence(void)
 {
     struct test_fixture fixture;
@@ -1018,12 +1149,22 @@ static int test_cross_process_lock(void)
     int child_to_parent[2];
     pid_t child;
     int child_status;
+    char lock_path[256];
+    struct stat lock_before;
+    struct stat lock_after_parent_close;
+    struct stat lock_after_child_close;
     struct qcpu_test_backend *parent_backend = NULL;
     struct qcpu_mock *parent_mock = NULL;
 
     runtime_dir = mkdtemp(runtime_template);
     CHECK(runtime_dir != NULL);
     CHECK(chmod(runtime_dir, S_IRWXU) == 0);
+    CHECK(snprintf(
+        lock_path,
+        sizeof(lock_path),
+        "%s/qcpu_mock.lock",
+        runtime_dir
+    ) > 0);
     CHECK(pipe(parent_to_child) == 0);
     CHECK(pipe(child_to_parent) == 0);
 
@@ -1098,13 +1239,21 @@ static int test_cross_process_lock(void)
         &parent_mock
     ) == 0);
     CHECK(qcpu_mock_open(parent_mock) == 0);
+    CHECK(stat(lock_path, &lock_before) == 0);
 
     CHECK(write_byte(parent_to_child[1], 'L') == 0);
     CHECK(read_byte(child_to_parent[0], 'B') == 0);
 
     CHECK(qcpu_mock_close(parent_mock) == 0);
+    CHECK(stat(lock_path, &lock_after_parent_close) == 0);
+    CHECK(lock_before.st_dev == lock_after_parent_close.st_dev);
+    CHECK(lock_before.st_ino == lock_after_parent_close.st_ino);
+
     CHECK(write_byte(parent_to_child[1], 'R') == 0);
     CHECK(read_byte(child_to_parent[0], 'S') == 0);
+    CHECK(stat(lock_path, &lock_after_child_close) == 0);
+    CHECK(lock_before.st_dev == lock_after_child_close.st_dev);
+    CHECK(lock_before.st_ino == lock_after_child_close.st_ino);
 
     CHECK(waitpid(child, &child_status, 0) == child);
     CHECK(WIFEXITED(child_status));
@@ -1116,9 +1265,11 @@ static int test_cross_process_lock(void)
     (void)close(parent_to_child[1]);
     (void)close(child_to_parent[0]);
 
+    CHECK(remove_runtime_lock_file(runtime_dir) == 0);
     CHECK(rmdir(runtime_dir) == 0);
 
     puts("PASS: MANDATORY_CROSS_PROCESS_EXCLUSIVE_LOCK");
+    puts("PASS: ADVISORY_LOCK_INODE_STABLE_ACROSS_SESSIONS");
     return 0;
 }
 
@@ -1169,6 +1320,7 @@ int main(void)
     CHECK(test_response_validation() == 0);
     CHECK(test_backend_absent_and_recovery() == 0);
     CHECK(test_timeout_and_same_session_recovery() == 0);
+    CHECK(test_bounded_uncooperative_timeout() == 0);
     CHECK(test_busy_cancel_and_destroy_quiescence() == 0);
     CHECK(test_cross_process_lock() == 0);
     CHECK(test_repeated_lifecycle() == 0);

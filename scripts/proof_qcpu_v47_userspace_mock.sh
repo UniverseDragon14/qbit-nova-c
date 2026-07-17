@@ -61,13 +61,24 @@ for marker in \
   "PASS: DETERMINISTIC_RESPONSE_VALIDATION" \
   "PASS: BACKEND_ABSENT_DISCONNECT_AND_RECOVERY" \
   "PASS: TIMEOUT_AND_SAME_SESSION_RECOVERY" \
+  "PASS: BOUNDED_UNCOOPERATIVE_TIMEOUT_RETURN" \
   "PASS: BUSY_CANCEL_AND_DESTROY_QUIESCENCE" \
   "PASS: MANDATORY_CROSS_PROCESS_EXCLUSIVE_LOCK" \
+  "PASS: ADVISORY_LOCK_INODE_STABLE_ACROSS_SESSIONS" \
   "PASS: REPEATED_100_SESSION_LIFECYCLE" \
   "PASS: QCPU_V47_STAGE2A_USERSPACE_MOCK_CORE_READY"
 do
   grep -Fq "$marker" "$LOG"
 done
+
+
+if grep -Fq 'unlink(mock->lock_path)' src/device/qcpu_mock_frontend.c; then
+  echo "FAIL: advisory lock pathname is removed by the frontend"
+  exit 1
+fi
+
+echo "PASS: QCPU_V47_STAGE2A_LOCK_PATH_STABLE"
+echo "PASS: QCPU_V47_STAGE2A_BOUNDED_TIMEOUT_RETURN_READY"
 
 if find "$BUILD_DIR" -maxdepth 1 -type f -name '*.ko' -print | grep -q .; then
   echo "FAIL: kernel module artifact detected"
