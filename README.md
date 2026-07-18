@@ -1,16 +1,78 @@
-# QBIT NOVA C
+# Novakutty — QBIT NOVA C
 
 [![QBIT NOVA CI](https://github.com/UniverseDragon14/qbit-nova-c/actions/workflows/qbit-nova-ci.yml/badge.svg)](https://github.com/UniverseDragon14/qbit-nova-c/actions/workflows/qbit-nova-ci.yml)
 
 
-Creator: Universal Dragon Aslam
-Project: QBIT NOVA C
+Creator and owner: **Universal Dragon Aslam**
+
+Product brand: **Novakutty**
+
+Core technology: **QBIT NOVA C**
+
+User-facing assistant identity: **NOVA / EVE**
+
+Creator provenance: [Universal Dragon Aslam Receipt](docs/UNIVERSAL_DRAGON_ASLAM_RECEIPT.md)
 
 QBIT NOVA C is a small C-based quantum-style language, bytecode VM, state-vector simulator, and virtual QMSG/QCPU layer.
 
 Important safety note:
 QBIT NOVA C does not claim that a normal phone or Raspberry Pi processor becomes a physical quantum chip.
 It builds a software virtual quantum processor layer on top of classical hardware.
+
+## Novakutty Build Week Judge Quickstart
+
+Novakutty is Universal Dragon Aslam's **Developer Tool**, powered by QBIT NOVA
+C: an approval-first C runtime that admits safe workloads, rejects unsafe
+workloads, and executes verified quantum-style work through a software Virtual
+QCPU.
+
+NOVA / EVE is the Novakutty product's user-facing assistance identity. This
+Stage 2B release proves the runtime bridge and safety boundary; it does not yet
+claim that an EVE model-inference backend is implemented.
+
+Planned identity roles:
+
+- **NOVA** presents approval decisions, runtime state, and proof evidence.
+- **EVE** explains those results conversationally and suggests safe next steps.
+- Neither identity may bypass the approval gate or claim physical quantum
+  hardware.
+
+Run the one-command judge demo on Linux:
+
+```bash
+bash scripts/qnova_build_week_demo.sh
+```
+
+Expected final marker:
+
+```text
+PASS: NOVAKUTTY_BUILD_WEEK_DEMO_READY
+```
+
+The demo exercises the approval gate, the v4.7 userspace frontend, the v4.6
+`qcpud` Unix-socket backend, STATUS and GHZ requests, Q32.32 conversion,
+bounded timeout recovery, and cleanup. It performs no root, kernel-module,
+device-node, TCP/UDP, GPIO, or physical-QPU action.
+
+### Ownership and required development-tool disclosure
+
+Novakutty and QBIT NOVA C are conceived, directed, and owned by Universal
+Dragon Aslam. For Build Week transparency, Codex assisted with repository
+inspection, the bounded Stage 2B adapter, focused tests, and documentation; it
+is not presented as the creator or owner. Exact GPT-5.6 usage and the required
+`/feedback` Session ID must be verified before submission—no unsupported model
+claim is made.
+
+The creator identity and CI-recovery milestone were already recorded in the
+v4.1.2 Universal Dragon Aslam Receipt before this Build Week submission work.
+
+See [the OpenAI Build Week guide](OPENAI_BUILD_WEEK.md) for judging
+context, supported platforms, the required assistance disclosure, and the
+items that must be finalized before submission. See
+[the Stage 2B design](docs/QCPU_V47_STAGE2B_QCPUD_ADAPTER.md) for the adapter
+contract and focused proof. The
+[Devpost submission draft](DEVPOST_SUBMISSION_DRAFT.md) contains copy-ready
+form answers and the demo voiceover.
 
 ## Current Capabilities
 

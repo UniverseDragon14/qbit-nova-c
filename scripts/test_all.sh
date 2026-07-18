@@ -248,4 +248,8 @@ echo
 echo "=== TEST QCPU V4.6 SESSION DAEMON LIFECYCLE ==="
 ./scripts/test_qcpu_device_lifecycle.sh
 
+echo
+echo "=== TEST QCPU V4.7 STAGE 2B QCPUD ADAPTER ==="
+bash scripts/proof_qcpu_v47_qcpud_adapter.sh
+
 echo "ALL QBIT NOVA TESTS PASSED"
