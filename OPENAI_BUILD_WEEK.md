@@ -123,19 +123,29 @@ Codex is a development assistant, not the product author or owner. The
 implementation remains understandable C with deterministic tests; assistant
 output is not treated as evidence unless the compiled proof reproduces it.
 
-## GPT-5.6 evidence to finalize before submission
+## GPT-5.6 Sol verification session evidence
 
-The build workspace included a supplied OpenAI GPT-5.6 System Card as
-background material. It is not committed to this repository, and a document is
-not proof that a model built the project. Before submission, the owner must:
+On 2026-07-18, Universal Dragon Aslam identified the final Stage 2B technical
+verification and Devpost evidence-review session as using GPT-5.6 Sol. That
+session reproduced the judge demo, full regression suite, focused Stage 2B
+proof, and available local static gates against commit `da1dbb9`.
 
-1. confirm that the primary Codex build session used GPT-5.6 for a meaningful
-   portion of the implementation or review;
-2. describe that exact portion here in the owner's own words;
-3. retrieve the `/feedback` Session ID from that primary build session; and
+The exact results, execution boundary, and model-attestation source are
+recorded in the
+[GPT-5.6 Sol verification receipt](docs/OPENAI_BUILD_WEEK_GPT56_SOL_VERIFICATION_RECEIPT.md).
+The receipt supports a meaningful verification and review claim; it does not,
+by itself, prove which model performed earlier implementation work.
+
+Before submission, the owner must:
+
+1. replace `<FEEDBACK_SESSION_ID>` in the receipt and Devpost draft with the
+   `/feedback` identifier returned for this exact session;
+2. describe the verification role accurately in the owner's own words;
+3. keep any separate implementation-session claim tied to its own evidence;
+   and
 4. include the same accurate explanation in the demo voiceover.
 
-Do not replace these steps with an unsupported model claim.
+Do not replace the missing Session ID with an unsupported identifier.
 
 ## Submission items for Universal Dragon Aslam
 
