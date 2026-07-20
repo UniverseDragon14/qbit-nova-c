@@ -20,7 +20,55 @@ jobs:
       - name: Install build tools
         run: |
           sudo apt-get update
-          sudo apt-get install -y build-essential
+          sudo apt-get install -y build-essential shellcheck
+
+      - name: Run Build Week static gates
+        run: |
+          git diff --check "$(git merge-base origin/main HEAD)" HEAD
+          bash -n \
+            scripts/qnova_build_week_demo.sh \
+            scripts/proof_qcpu_v47_qcpud_adapter.sh \
+            scripts/test_all.sh
+          shellcheck \
+            scripts/qnova_build_week_demo.sh \
+            scripts/proof_qcpu_v47_qcpud_adapter.sh
+
+          tmp_dir="$(mktemp -d)"
+          trap 'rm -rf "$tmp_dir"' EXIT
+
+          gcc \
+            -std=c11 \
+            -D_POSIX_C_SOURCE=200809L \
+            -Wall \
+            -Wextra \
+            -Werror \
+            -pedantic \
+            -fanalyzer \
+            -pthread \
+            -I. \
+            src/device/qcpu_device_wire.c \
+            src/device/qcpu_device_io.c \
+            src/device/qcpu_mock_frontend.c \
+            src/device/qcpu_qcpud_adapter.c \
+            tests/v47/qcpu_qcpud_adapter_test.c \
+            -lm \
+            -o "$tmp_dir/qcpu-qcpud-adapter-test"
+
+          gcc \
+            -std=c11 \
+            -D_POSIX_C_SOURCE=200809L \
+            -Wall \
+            -Wextra \
+            -Werror \
+            -pedantic \
+            -fanalyzer \
+            -I. \
+            src/device/qcpu_device_wire.c \
+            src/device/qcpu_device_io.c \
+            src/quantum/qcpu_kernel.c \
+            src/device/qcpud.c \
+            -lm \
+            -o "$tmp_dir/qcpud"
 
       - name: Run QBIT NOVA proof tests
         run: |
@@ -28,3 +76,6 @@ jobs:
           git tag -l "v3.*"
           chmod +x scripts/test_all.sh
           ./scripts/test_all.sh
+
+      - name: Run Build Week judge demo
+        run: ./scripts/qnova_build_week_demo.sh

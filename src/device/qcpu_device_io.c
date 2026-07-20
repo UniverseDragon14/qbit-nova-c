@@ -150,6 +150,27 @@ static QCPUDeviceIOStatus prepare_deadline(
     return QCPU_DEVICE_IO_OK;
 }
 
+static ssize_t write_without_sigpipe(
+    int file_descriptor,
+    const uint8_t *buffer,
+    size_t size
+) {
+#ifdef MSG_NOSIGNAL
+    return send(
+        file_descriptor,
+        buffer,
+        size,
+        MSG_NOSIGNAL
+    );
+#else
+    return write(
+        file_descriptor,
+        buffer,
+        size
+    );
+#endif
+}
+
 QCPUDeviceIOStatus qcpu_device_read_all(
     int file_descriptor,
     uint8_t *buffer,
@@ -249,7 +270,7 @@ QCPUDeviceIOStatus qcpu_device_write_all(
             return QCPU_DEVICE_IO_STOPPED;
         }
 
-        result = write(
+        result = write_without_sigpipe(
             file_descriptor,
             buffer + completed,
             size - completed
