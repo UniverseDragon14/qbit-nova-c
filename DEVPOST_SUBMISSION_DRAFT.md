@@ -2,8 +2,9 @@
 
 Creator and owner: **Universal Dragon Aslam**
 
-Status: copy-ready except for the final CI URL, public YouTube URL, Codex
-`/feedback` Session ID, and owner-selected open-source license.
+Status: repository evidence, MIT license, public demo video, pull request,
+and Codex/GPT-5.6 session evidence are ready. Pending Devpost form completion
+and final submission.
 
 ## Form answers
 
@@ -15,9 +16,10 @@ Status: copy-ready except for the final CI URL, public YouTube URL, Codex
 - **Code repository:** https://github.com/UniverseDragon14/qbit-nova-c
 - **Built with:** C, Bash, Python, GitHub Actions, Unix domain sockets,
   OpenQASM, Codex, GPT-5.6
-- **Public demo video:** `<YOUTUBE_URL>`
-- **Primary Codex /feedback Session ID:** `<FEEDBACK_SESSION_ID>`
-- **Verified pull request / CI:** `<PULL_REQUEST_URL>`
+- **Public demo video:** `https://youtu.be/c_Xe6yny3w4`
+- **Primary Codex /feedback Session ID:** `019f83e0-f277-7540-ba39-e0583bde8233`
+- **GPT-5.6 Sol verification Session ID:** `019f8513-79ca-7e81-9063-9f69aa657945`
+- **Verified pull request / CI:** `https://github.com/UniverseDragon14/qbit-nova-c/pull/39`
 - **GPT-5.6 Sol verification receipt:**
   `docs/OPENAI_BUILD_WEEK_GPT56_SOL_VERIFICATION_RECEIPT.md`
 
@@ -189,10 +191,10 @@ ecosystem: honest boundaries, bounded execution, and proof before trust."
 ## Final submission checklist
 
 - [x] GPT-5.6 Sol verification session is recorded with reproducible results.
-- [ ] Owner selects and adds MIT or Apache-2.0 license.
-- [ ] Draft PR is green and the final PR/CI URL is inserted above.
-- [ ] PR is merged so the judge command exists on the repository default branch.
-- [ ] Under-three-minute voiceover video is public on YouTube.
+- [x] MIT License is included on the repository `main` branch.
+- [x] PR #39 is green and the verified PR/CI URL is inserted above.
+- [x] PR #39 is merged and the judge command passes on the `main` branch.
+- [x] Under-three-minute voiceover video is public on YouTube.
 - [ ] `/feedback` Session ID is added to Devpost.
 - [ ] Devpost description and private judge instructions are copied from this
       file and reviewed in Universal Dragon Aslam's own voice.
