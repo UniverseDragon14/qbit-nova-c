@@ -1,0 +1,52 @@
+# QBIT NOVA C
+
+**Creator:** Universal Dragon Aslam  
+**Project:** QBIT NOVA C  
+**Purpose:** A small C-based quantum-style language, bytecode VM, state-vector simulator, and virtual QMSG/QCPU layer.
+
+QBIT NOVA C does **not** claim that a normal phone or Raspberry Pi becomes a physical quantum computer.
+
+Instead, it builds a **software virtual quantum processor layer** on top of classical hardware.
+
+## Current Capabilities
+
+- `.qn` language syntax
+- Lexer, parser, AST, compiler
+- Bytecode VM
+- Safe action adapter contract
+- Qbit simulation
+- Hadamard gate
+- CNOT simulation
+- Entangle simulation
+- Repeat blocks
+- 2-qbit state-vector core
+- Unified `qnova` runner
+- QMSG virtual packet layer
+- QMSG virtual qbit register view
+
+## Version Timeline
+
+| Version | Feature |
+|---|---|
+| v1.0 | 2-qbit state-vector core |
+| v1.1 | `.qn` to state-vector pipeline |
+| v1.2 | Unified `qnova` runner |
+| v1.3 | QMSG virtual packet layer |
+| v1.4 | QMSG virtual qbit register view |
+
+## Example: Bell State
+
+```qbit
+@nova.v1
+@qbit.enabled
+@quantum.state2
+
+qbit q = |0>
+qbit p = |0>
+
+hadamard q
+cnot q p
+
+measure q
+say q
+say p

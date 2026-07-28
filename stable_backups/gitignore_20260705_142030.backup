@@ -1,0 +1,24 @@
+# Build outputs
+qnova-ast
+test_lexer
+test_parser
+*.o
+*.out
+*.qbc
+
+# Temp files
+.DS_Store
+qbyte-vm
+qnova-byte
+qnova-qbc
+.safe_patch_backup/
+qstate2-test
+qnova-state2
+qnova
+
+qnova-qasm
+\nbuild/\n
+build/
+\nlogs/\n\n.qcpu/\n
+logs/
+.qcpu/

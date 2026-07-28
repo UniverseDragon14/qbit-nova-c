@@ -1,0 +1,53 @@
+[1mdiff --git a/scripts/test_all.sh b/scripts/test_all.sh[m
+[1mindex 73b1da0..4c215db 100755[m
+[1m--- a/scripts/test_all.sh[m
+[1m+++ b/scripts/test_all.sh[m
+[36m@@ -1,5 +1,8 @@[m
+ #!/usr/bin/env bash[m
+ set -e[m
+[32m+[m[32mQBIT_TMP_DIR="${TMPDIR:-${PREFIX:-/data/data/com.termux/files/usr}/tmp}"[m
+[32m+[m[32mmkdir -p "$QBIT_TMP_DIR"[m
+[32m+[m[32mQBIT_QASM_OUT="$QBIT_TMP_DIR/qbit_nova_bell.qasm"[m
+ [m
+ echo "=== BUILD QBIT NOVA ==="[m
+ gcc src/qnova.c \[m
+[36m@@ -38,8 +41,8 @@[m [mgcc src/tools/qasm_export.c \[m
+ [m
+ echo[m
+ echo "=== TEST OpenQASM export ==="[m
+[31m-./qnova-qasm examples/bell_qasm.qn > /tmp/qbit_nova_bell.qasm[m
+[31m-grep -E 'OPENQASM 3.0|include "stdgates.inc"|qubit\[2\] q|bit\[2\] c|h q\[0\]|cx q\[0\], q\[1\]|c\[0\] = measure q\[0\]|c\[1\] = measure q\[1\]' /tmp/qbit_nova_bell.qasm[m
+[32m+[m[32m./qnova-qasm examples/bell_qasm.qn > $QBIT_QASM_OUT[m
+[32m+[m[32mgrep -E 'OPENQASM 3.0|include "stdgates.inc"|qubit\[2\] q|bit\[2\] c|h q\[0\]|cx q\[0\], q\[1\]|c\[0\] = measure q\[0\]|c\[1\] = measure q\[1\]' $QBIT_QASM_OUT[m
+ [m
+ echo[m
+ echo "=== TEST BELL PROOF SCRIPT ==="[m
+[36m@@ -60,9 +63,9 @@[m [mgrep -E 'QBIT_NOVA_VIRTUAL_QCPU|software virtual QCPU' build/qcpu_node.json[m
+ [m
+ echo[m
+ echo "=== TEST NOVA HYPERCUBE RUNTIME ==="[m
+[31m-./scripts/hypercube_status.sh > /tmp/qbit_nova_hypercube_status.log[m
+[31m-cat /tmp/qbit_nova_hypercube_status.log[m
+[31m-grep -E 'NOVA HYPERCUBE RUNTIME READY' /tmp/qbit_nova_hypercube_status.log[m
+[32m+[m[32m./scripts/hypercube_status.sh > $QBIT_TMP_DIR/qbit_nova_hypercube_status.log[m
+[32m+[m[32mcat $QBIT_TMP_DIR/qbit_nova_hypercube_status.log[m
+[32m+[m[32mgrep -E 'NOVA HYPERCUBE RUNTIME READY' $QBIT_TMP_DIR/qbit_nova_hypercube_status.log[m
+ [m
+ echo[m
+ echo "=== TEST NOVA HYPERCUBE SNAPSHOT ==="[m
+[36m@@ -189,11 +192,11 @@[m [mecho "=== QNOVA PUBLIC INSTALL CHECK ==="[m
+ [m
+ bash -n install.sh[m
+ [m
+[31m-./install.sh --dry-run > /tmp/qnova_install_dryrun.txt[m
+[31m-cat /tmp/qnova_install_dryrun.txt[m
+[32m+[m[32m./install.sh --dry-run > $QBIT_TMP_DIR/qnova_install_dryrun.txt[m
+[32m+[m[32mcat $QBIT_TMP_DIR/qnova_install_dryrun.txt[m
+ [m
+[31m-grep -F "PASS: QNOVA_INSTALL_DRY_RUN_READY" /tmp/qnova_install_dryrun.txt[m
+[31m-grep -F "QNOVA PUBLIC INSTALL SCRIPT READY" /tmp/qnova_install_dryrun.txt[m
+[32m+[m[32mgrep -F "PASS: QNOVA_INSTALL_DRY_RUN_READY" $QBIT_TMP_DIR/qnova_install_dryrun.txt[m
+[32m+[m[32mgrep -F "QNOVA PUBLIC INSTALL SCRIPT READY" $QBIT_TMP_DIR/qnova_install_dryrun.txt[m
+ grep -F "PASS: QNOVA_PUBLIC_INSTALL_READY" docs/QNOVA_PUBLIC_INSTALL.md[m
+ grep -F "QNOVA Public Install Script" README.md[m
+ [m
