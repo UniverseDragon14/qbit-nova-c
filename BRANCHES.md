@@ -1,10 +1,10 @@
 # QBIT NOVA C Branch Map
 
-Inspected on **2026-09-01**. This inventory accounts for all **58 reachable branches** at inspection time.
+Inspected on **2026-09-01**. This inventory accounts for all **58 reachable branches** at inspection time. The implementation tips below were recorded before documentation-only audit commits; those README/branch-map commits do not change the described code.
 
 A branch name records a development checkpoint; it is not automatically a released feature or proof that the branch was merged into `main`. The commit and files on that branch are the authority.
 
-| Branch | Inspected tip | Purpose / state |
+| Branch | Inspected implementation tip | Purpose / state |
 |---|---|---|
 | `aslam/public-technical-identity` | `2a15b4bc7483` | Public Mintlify identity, architecture, safety and Tamil docs |
 | `aslam/qbit-correctness-hotfix` | `73a57f6307ec` | Correctness test invocation fix |
@@ -17,18 +17,18 @@ A branch name records a development checkpoint; it is not automatically a releas
 | `claude/qbit-nova-testing-dzjyye` | `c014f489c555` | Portable temporary-directory fix for Termux/Pi testing |
 | `codex/openai-build-week-stage2b` | `ca48ac420997` | Stage 2B qcpud adapter and Build Week evidence/docs |
 | `main` | `873c64498ad8` | Current default Novakutty/QBIT NOVA C integration branch |
-| `v0.4-bytecode` | `83f96aba5c24` | Historical AST interpreter and bytecode checkpoint; README added |
-| `v0.5-bytecode-vm` | `98929baee415` | Historical repeat-capable bytecode VM; README added |
-| `v0.5-qbc-save-load` | `cfad1a56156e` | Historical QBC save/load round trip; README added |
-| `v0.6-safe-action` | `f10fdeb37f06` | Historical simulated action allowlist; README added |
-| `v0.7-adapter-contract` | `830210bcbbb3` | Historical safe adapter contract; README added |
-| `v0.8-quantum-core` | `6e372b003471` | Historical entangle simulation; README added |
-| `v0.9-cnot-state-vector` | `02e4047fbf82` | Historical CNOT simulation; README added |
-| `v1.0-state-vector-core` | `3700d4f9dade` | Historical two-qbit state-vector core; README added |
-| `v1.1-qn-state-vector-pipeline` | `91c01cff02be` | Historical QN-to-state-vector pipeline; README added |
-| `v1.2-unified-runner` | `906e1fda8311` | Historical unified qnova runner; README added |
-| `v1.3-qcpu-qmsg` | `fd27a172a7ca` | Historical QMSG virtual packet layer; README added |
-| `v1.4-qmsg-register` | `9b4fee2ca609` | Historical QMSG virtual register view; README added |
+| `v0.4-bytecode` | `faeb9cbdece8` | Historical AST interpreter and bytecode checkpoint; README added |
+| `v0.5-bytecode-vm` | `72fc501b5d85` | Historical repeat-capable bytecode VM; README added |
+| `v0.5-qbc-save-load` | `035f6e118542` | Historical QBC save/load round trip; README added |
+| `v0.6-safe-action` | `c95584ae1bad` | Historical simulated action allowlist; README added |
+| `v0.7-adapter-contract` | `1d2726cc8fb8` | Historical safe adapter contract; README added |
+| `v0.8-quantum-core` | `83b5c7ce7692` | Historical entangle simulation; README added |
+| `v0.9-cnot-state-vector` | `0635cbb81ae0` | Historical CNOT simulation; README added |
+| `v1.0-state-vector-core` | `4dd0d438d458` | Historical two-qbit state-vector core; README added |
+| `v1.1-qn-state-vector-pipeline` | `11deda011c67` | Historical QN-to-state-vector pipeline; README added |
+| `v1.2-unified-runner` | `fae9b3f42332` | Historical unified qnova runner; README added |
+| `v1.3-qcpu-qmsg` | `3296c796743e` | Historical QMSG virtual packet layer; README added |
+| `v1.4-qmsg-register` | `6af6fb309f4a` | Historical QMSG virtual register view; README added |
 | `v1.5-readme-proof-pack` | `833f98038cff` | First public README and proof pack |
 | `v1.6-github-ci` | `7a418ceb6a37` | GitHub CI proof tests |
 | `v1.7-ci-badge` | `5849ee55fbf3` | CI status badge |
