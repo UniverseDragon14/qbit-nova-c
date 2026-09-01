@@ -19,6 +19,16 @@ Important safety note:
 QBIT NOVA C does not claim that a normal phone or Raspberry Pi processor becomes a physical quantum chip.
 It builds a software virtual quantum processor layer on top of classical hardware.
 
+## Audited branch status
+
+All **58 branches** were inspected on 2026-09-01. See [BRANCHES.md](BRANCHES.md) for the complete branch-to-feature map and inspected tip SHAs.
+
+The v4.5–v4.7 kernel/device experiments and Stage 2/2A/2B work live on feature branches and are **not all merged into `main`**. Read the selected branch before using its documentation.
+
+The Raspberry Pi 5 200,000-shot GHZ source/QBC proof belongs to the separate **QBIT NOVA Native** development line; it is not evidence produced by this QBIT NOVA C repository.
+
+The current `main` history also contains tracked backup/generated material. See the repository-hygiene warning in [BRANCHES.md](BRANCHES.md) before preparing the next release.
+
 ## Novakutty Build Week Judge Quickstart
 
 Novakutty is Universal Dragon Aslam's **Developer Tool**, powered by QBIT NOVA
@@ -218,7 +228,13 @@ Run:
     ./scripts/test_all.sh
 
 v2.0 keeps the safety boundary clear: this is a software virtual quantum processor layer, not physical quantum hardware conversion.
-\n| v2.0 | Public release checkpoint |\n| v2.1 | QASM file export bridge |\n| v2.2 | Virtual QCPU boot layer |\n| v2.3 | NOVA Hypercube Runtime status layer |\n| v2.4 | NOVA Hypercube snapshot report |\n
+
+| v2.0 | Public release checkpoint |
+| v2.1 | QASM file export bridge |
+| v2.2 | Virtual QCPU boot layer |
+| v2.3 | NOVA Hypercube Runtime status layer |
+| v2.4 | NOVA Hypercube snapshot report |
+
 
 ## QASM File Export
 
