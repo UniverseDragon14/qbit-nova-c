@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 cd "$(dirname "$0")/.."
-for tool in gcc glslc; do command -v "$tool" >/dev/null 2>&1 || { echo "Missing tool: $tool" >&2; exit 2; }; done
+for tool in gcc glslc vulkaninfo; do command -v "$tool" >/dev/null 2>&1 || { echo "Missing tool: $tool" >&2; exit 2; }; done
 pkg-config --exists vulkan || { echo "Missing Vulkan development files" >&2; exit 2; }
 mkdir -p build/gpu-roundtrip logs
 glslc benchmarks/gpu_roundtrip.comp -o build/gpu-roundtrip/transform.spv
