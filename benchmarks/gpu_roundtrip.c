@@ -23,7 +23,9 @@ static uint64_t ticks(void) {
 }
 static uint32_t envn(const char*n,uint32_t d,uint32_t lo,uint32_t hi) {
  const char*s=getenv(n);char*e=NULL;unsigned long v;
- if(!s||!*s)return d;errno=0;v=strtoul(s,&e,10);
+ if(!s||!*s)return d;
+ errno=0;
+ v=strtoul(s,&e,10);
  if(errno||e==s||*e||v<lo||v>hi){fprintf(stderr,"%s must be %u..%u\n",n,lo,hi);exit(2);}
  return(uint32_t)v;
 }
