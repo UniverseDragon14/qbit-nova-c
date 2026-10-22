@@ -22,14 +22,19 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y build-essential shellcheck
 
+      - name: Check public repository hygiene
+        run: bash scripts/check_public_hygiene.sh
+
       - name: Run Build Week static gates
         run: |
           git diff --check "$(git merge-base origin/main HEAD)" HEAD
           bash -n \
+            scripts/check_public_hygiene.sh \
             scripts/qnova_build_week_demo.sh \
             scripts/proof_qcpu_v47_qcpud_adapter.sh \
             scripts/test_all.sh
           shellcheck \
+            scripts/check_public_hygiene.sh \
             scripts/qnova_build_week_demo.sh \
             scripts/proof_qcpu_v47_qcpud_adapter.sh
 

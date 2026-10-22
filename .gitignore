@@ -1,31 +1,40 @@
-# Build outputs
+# Local build products and test binaries
 qnova-ast
 test_lexer
 test_parser
 *.o
 *.out
 *.qbc
-
-# Temp files
-.DS_Store
 qbyte-vm
 qnova-byte
 qnova-qbc
-.safe_patch_backup/
 qstate2-test
 qnova-state2
 qnova
-
 qnova-qasm
-\nbuild/\n
-build/
-\nlogs/\n\n.qcpu/\n
-logs/
-.qcpu/
 
+# Generated runtime state, reports, logs and local backups
+/build/
+/logs/
+/.qcpu/
+/.safe_patch_backup/
+/stable_backups/
+**/__pycache__/
+*.py[cod]
+*.log
+
+# Local environment and credential material
 .env
 .env.*
-stable_backups/
-__pycache__/
-scripts/__pycache__/
-*.pyc
+!.env.example
+!.env.sample
+!.env.template
+*.pem
+*.key
+*.p12
+*.pfx
+id_rsa
+id_ed25519
+
+# Editor and OS noise
+.DS_Store

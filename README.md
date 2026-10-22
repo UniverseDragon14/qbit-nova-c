@@ -19,6 +19,12 @@ Important safety note:
 QBIT NOVA C does not claim that a normal phone or Raspberry Pi processor becomes a physical quantum chip.
 It builds a software virtual quantum processor layer on top of classical hardware.
 
+## Capability boundary and evidence
+
+QBIT NOVA C is an approval-first **developer/runtime tool**: it includes a `.qn` toolchain, a classical state-vector simulator, virtual QMSG/QCPU layers, selected OpenQASM 3.0 export, and reproducible software proof scripts. It is **not currently a ChatGPT-style conversational AI**: this repository does not ship the NOVA/EVE LLM-inference backend, a full voice assistant, or Android-wide phone control. It does not provide a physical quantum processor or demonstrated quantum/GPU acceleration.
+
+See the [Capability Matrix](docs/CAPABILITY_MATRIX.md) for the implemented surface, verification commands, and explicit non-capabilities. See [SECURITY.md](SECURITY.md) for responsible reporting and [public release hygiene](scripts/check_public_hygiene.sh).
+
 ## Audited branch status
 
 All **58 branches** were inspected on 2026-09-01. See [BRANCHES.md](BRANCHES.md) for the complete branch-to-feature map and inspected tip SHAs.
